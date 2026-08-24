@@ -1,15 +1,10 @@
 {
   "manifest_version": 3,
   "name": "SurakshaNet",
-  "version": "2.0.0",
-  "description": "On-device Hindi + English abuse detection.",
+  "version": "2.0.1",
+  "description": "On-device Hindi abuse detection for WhatsApp Web.",
   "permissions": ["storage", "downloads"],
-  "host_permissions": [
-    "https://web.whatsapp.com/*",
-    "https://twitter.com/*",
-    "https://x.com/*",
-    "https://www.instagram.com/*"
-  ],
+  "host_permissions": ["https://web.whatsapp.com/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
   },
@@ -23,19 +18,20 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://web.whatsapp.com/*",
-        "https://twitter.com/*",
-        "https://x.com/*",
-        "https://www.instagram.com/*"
-      ],
-      "js": ["src/content/content.js"]
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["src/content/content.js"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["assets/*", "assets/models/*", "assets/models/custom-macd-model/*", "assets/models/custom-macd-model/onnx/*"],
-      "matches": ["<all_urls>"]
+      "resources": [
+        "assets/*",
+        "assets/models/*",
+        "assets/models/custom-macd-model/*",
+        "assets/models/custom-macd-model/onnx/*"
+      ],
+      "matches": ["https://web.whatsapp.com/*"]
     }
   ]
 }

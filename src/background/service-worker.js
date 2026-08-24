@@ -3,15 +3,22 @@ import { saveEvidence, exportJSON } from '../storage.js';
 
 env.allowLocalModels = true;
 env.allowRemoteModels = false;
+env.useBrowserCache = false;
 env.localModelPath = chrome.runtime.getURL('assets/models/');
 env.backends.onnx.wasm.numThreads = 1;
+env.backends.onnx.wasm.proxy = false;
+env.backends.onnx.wasm.simd = true;
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('assets/');
 
 let clf = null;
-let queue = Promise.resolve();
+let modelError = null;
+let modelLoading = null;
+let inferQueue = Promise.resolve();
 const THRESHOLD = 0.65;
 const CACHE = 'sn_inf';
 const CACHE_MAX = 4000;
+
+console.log('[SurakshaNet] service worker started', chrome.runtime.getManifest().version);
 
 async function h(t) {
   const b = await crypto.subtle.digest(
@@ -35,28 +42,54 @@ async function putCache(text, v) {
   await chrome.storage.session.set({ [CACHE]: c });
 }
 
-async function load() {
-  if (!clf) clf = await pipeline('text-classification', 'custom-macd-model', { top_k: null });
+async function loadModel() {
+  if (clf) return clf;
+  if (modelLoading) return modelLoading;
+  modelLoading = (async () => {
+    try {
+      console.log('[SurakshaNet] loading model from', env.localModelPath);
+      clf = await pipeline('text-classification', 'custom-macd-model', {
+        top_k: null,
+        quantized: true,
+      });
+      modelError = null;
+      console.log('[SurakshaNet] model ready');
+      return clf;
+    } catch (e) {
+      modelError = e.message || String(e);
+      console.error('[SurakshaNet] model load failed:', e);
+      throw e;
+    } finally {
+      modelLoading = null;
+    }
+  })();
+  return modelLoading;
 }
 
 function verdict(results) {
-  let max = 0;
+  let abusiveScore = 0;
   for (const r of results) {
-    const L = r.label.toLowerCase();
-    if ((L === 'abusive' || L === 'label_0') && r.score >= THRESHOLD) max = Math.max(max, r.score);
+    const L = String(r.label).toLowerCase();
+    const isAbusive =
+      L === 'abusive' || L === 'label_0' || L.includes('abusive') || L === '0';
+    if (isAbusive) abusiveScore = Math.max(abusiveScore, r.score);
   }
-  const isToxic = max > 0;
+  // Fallback: lower index = abusive in our id2label
+  if (!abusiveScore && results.length >= 2) {
+    const s0 = results.find((r) => String(r.label).toLowerCase().includes('0'));
+    if (s0) abusiveScore = s0.score;
+  }
+  const isToxic = abusiveScore >= THRESHOLD;
   return {
     isToxic,
-    maxScore: max,
-    severity: isToxic ? (max > 0.85 ? 'HIGH' : 'MEDIUM') : null,
+    maxScore: isToxic ? abusiveScore : 0,
+    severity: isToxic ? (abusiveScore > 0.85 ? 'HIGH' : 'MEDIUM') : null,
   };
 }
 
 async function exportOnHigh() {
   const json = await exportJSON();
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
   try {
     await chrome.downloads.download({
       url,
@@ -71,37 +104,77 @@ async function exportOnHigh() {
 async function classify(text) {
   const hit = await cached(text);
   if (hit) return hit;
-  await load();
-  const v = verdict(await clf(text));
+  await loadModel();
+  const raw = await clf(text);
+  const v = verdict(Array.isArray(raw) ? raw : [raw]);
   await putCache(text, v);
   return v;
 }
 
+function status() {
+  return {
+    ok: true,
+    modelReady: Boolean(clf),
+    modelLoading: Boolean(modelLoading),
+    modelError,
+  };
+}
+
+function runInfer(fn) {
+  const p = inferQueue.then(fn);
+  inferQueue = p.catch(() => {});
+  return p;
+}
+
+chrome.runtime.onInstalled.addListener(() => loadModel().catch(console.error));
+chrome.runtime.onStartup.addListener(() => loadModel().catch(console.error));
+loadModel().catch(console.error);
+
 chrome.runtime.onMessage.addListener((req, _s, send) => {
+  if (req.type === 'PING') {
+    send(status());
+    return;
+  }
+
+  if (req.type === 'CLASSIFY_ONE') {
+    runInfer(() => classify(req.text || ''))
+      .then((r) => send({ ok: true, ...r }))
+      .catch((e) => send({ ok: false, error: e.message }));
+    return true;
+  }
+
   if (req.type !== 'ANALYZE_BATCH') return;
-  queue = queue.then(async () => {
-    try {
-      const results = [];
-      let sawHigh = false;
-      for (const item of req.items || []) {
-        const a = await classify(item.text);
-        if (a.isToxic) {
-          await saveEvidence({
-            text: item.text,
-            source: req.source,
-            severity: a.severity,
-            maxScore: a.maxScore,
-            timestamp: Date.now(),
-          });
-          if (a.severity === 'HIGH') sawHigh = true;
-        }
-        results.push({ id: item.id, ...a });
+
+  runInfer(async () => {
+    const results = [];
+    let sawHigh = false;
+    for (const item of req.items || []) {
+      const a = await classify(item.text);
+      if (a.isToxic) {
+        await saveEvidence({
+          text: item.text,
+          source: req.source || 'web.whatsapp.com',
+          severity: a.severity,
+          maxScore: a.maxScore,
+          timestamp: Date.now(),
+        });
+        if (a.severity === 'HIGH') sawHigh = true;
       }
-      if (sawHigh) await exportOnHigh();
-      send({ results });
-    } catch (e) {
-      send({ results: [], error: e.message });
+      results.push({ id: item.id, ...a });
     }
-  });
+    if (sawHigh) await exportOnHigh();
+    return { results };
+  })
+    .then((out) => send(out))
+    .catch((e) => {
+      console.error('[SurakshaNet] batch error:', e);
+      send({ results: [], error: e.message });
+    });
+
   return true;
 });
+
+self.addEventListener('error', (e) => console.error('[SurakshaNet] SW error:', e.error || e.message));
+self.addEventListener('unhandledrejection', (e) =>
+  console.error('[SurakshaNet] SW unhandled:', e.reason)
+);
