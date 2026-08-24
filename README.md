@@ -1,5 +1,4 @@
-# SurakshaNet — FINAL (interview pack)
-
+# SurakshaNet
 On-device abuse detection for Hindi (Devanagari) + English. Systems story: viewport scan, bounded evidence, hash chain, export-on-HIGH.
 
 **Read order:** `README.md` → `REPORT/RESULTS.md` → `training/train.py` → `quantization-and-export/export_int8.py` → `src/`
@@ -46,8 +45,6 @@ python training/train.py
 python training/evaluate.py
 python quantization-and-export/export_int8.py
 ```
-
-HF Trainer pattern: https://huggingface.co/learn/llm-course/chapter3/3
 
 ## Extension
 
