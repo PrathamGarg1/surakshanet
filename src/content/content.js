@@ -35,18 +35,25 @@ function extractText(el) {
 
 function flushBatch() {
   batchTimer = null;
-  if (!chrome?.runtime?.sendMessage || pendingQueue.size === 0) return;
+  if (!chrome?.runtime?.id || pendingQueue.size === 0) return;
 
   const entries = Array.from(pendingQueue.entries()).slice(0, MAX_BATCH);
   chrome.runtime.sendMessage(
     {
       type: 'ANALYZE_BATCH',
-      source: window.location.hostname,
+      source: 'web.whatsapp.com',
       items: entries.map(([id, v]) => ({ id, text: v.text })),
     },
     (response) => {
-      if (chrome.runtime.lastError || !response?.results) {
-        pendingQueue.clear();
+      if (chrome.runtime.lastError) {
+        console.warn('[SurakshaNet]', chrome.runtime.lastError.message);
+        entries.forEach(([id]) => pendingQueue.delete(id));
+        if (pendingQueue.size) scheduleBatch();
+        return;
+      }
+      if (!response?.results) {
+        entries.forEach(([id]) => pendingQueue.delete(id));
+        if (pendingQueue.size) scheduleBatch();
         return;
       }
       for (const r of response.results) {
@@ -55,7 +62,7 @@ function flushBatch() {
         pendingQueue.delete(r.id);
         if (r.isToxic) showBanner(item.element, r);
       }
-      if (pendingQueue.size > 0) scheduleBatch();
+      if (pendingQueue.size) scheduleBatch();
     }
   );
 }
@@ -67,11 +74,14 @@ function scheduleBatch() {
 function queueElement(el) {
   const text = extractText(el);
   if (!text || !rememberText(text)) return;
-  if (!chrome?.runtime?.sendMessage) return;
-
   const id = String(++nextId);
   pendingQueue.set(id, { text, element: el });
   scheduleBatch();
+}
+
+function isVisible(el) {
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight + 150;
 }
 
 const viewportObserver = new IntersectionObserver(
@@ -80,13 +90,14 @@ const viewportObserver = new IntersectionObserver(
       if (entry.isIntersecting) queueElement(entry.target);
     }
   },
-  { root: null, rootMargin: '120px 0px', threshold: 0.01 }
+  { root: null, rootMargin: '150px 0px', threshold: 0.01 }
 );
 
 function trackElement(el) {
   if (tracked.has(el)) return;
   tracked.add(el);
   viewportObserver.observe(el);
+  if (isVisible(el)) queueElement(el);
 }
 
 function findMessageElements(root = document.body) {
@@ -110,9 +121,7 @@ function attachInSubtree(root) {
 function startObservers() {
   const root = document.body || document.documentElement;
   if (!root) return setTimeout(startObservers, 200);
-
   attachInSubtree(root);
-
   new MutationObserver((mutations) => {
     for (const m of mutations) {
       for (const node of m.addedNodes) {

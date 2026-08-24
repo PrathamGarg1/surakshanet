@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SurakshaNet",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "On-device Hindi abuse detection for WhatsApp Web.",
   "permissions": ["storage"],
   "host_permissions": ["https://web.whatsapp.com/*"],
@@ -31,7 +31,7 @@
         "assets/models/custom-macd-model/*",
         "assets/models/custom-macd-model/onnx/*"
       ],
-      "matches": ["https://web.whatsapp.com/*"]
+      "matches": ["<all_urls>"]
     }
   ]
 }

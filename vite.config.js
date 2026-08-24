@@ -1,37 +1,33 @@
 import { defineConfig } from 'vite';
 import { crx } from '@crxjs/vite-plugin';
 import manifest from './manifest.json';
-import { cpSync, existsSync, mkdirSync } from 'fs';
-import { resolve } from 'path';
+import fs from 'fs';
+import path from 'path';
+
+function copyAssetsPlugin() {
+  return {
+    name: 'copy-assets',
+    closeBundle() {
+      const distDir = path.resolve('dist');
+      const wasmSrc = path.resolve('node_modules/@xenova/transformers/dist');
+      const wasmDest = path.resolve(distDir, 'assets');
+      if (!fs.existsSync(wasmDest)) fs.mkdirSync(wasmDest, { recursive: true });
+      if (fs.existsSync(wasmSrc)) {
+        for (const file of fs.readdirSync(wasmSrc).filter((f) => f.endsWith('.wasm'))) {
+          fs.copyFileSync(path.join(wasmSrc, file), path.join(wasmDest, file));
+        }
+      }
+      const modelSrc = path.resolve('assets/models');
+      const modelDest = path.resolve(distDir, 'assets/models');
+      if (fs.existsSync(modelSrc)) {
+        fs.cpSync(modelSrc, modelDest, { recursive: true, dereference: true });
+      }
+    },
+  };
+}
 
 export default defineConfig({
   base: './',
-  plugins: [
-    crx({ manifest }),
-    {
-      name: 'copy-model',
-      closeBundle() {
-        const src = resolve('assets/models');
-        const dst = resolve('dist/assets/models');
-        if (!existsSync(src)) return;
-        mkdirSync(dst, { recursive: true });
-        cpSync(src, dst, { recursive: true, dereference: true });
-        const wasmSrc = resolve('node_modules/onnxruntime-web/dist');
-        const wasmDst = resolve('dist/assets');
-        mkdirSync(wasmDst, { recursive: true });
-        if (existsSync(wasmSrc)) {
-          for (const f of [
-            'ort-wasm.wasm',
-            'ort-wasm-simd.wasm',
-            'ort-wasm-threaded.wasm',
-            'ort-wasm-simd-threaded.wasm',
-          ]) {
-            const p = resolve(wasmSrc, f);
-            if (existsSync(p)) cpSync(p, resolve(wasmDst, f));
-          }
-        }
-      },
-    },
-  ],
+  plugins: [crx({ manifest }), copyAssetsPlugin()],
   build: { outDir: 'dist', emptyOutDir: true },
 });
