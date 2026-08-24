@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>SurakshaNet</title>
+  <style>
+    body { width: 360px; margin: 0; font: 13px/1.4 system-ui; background: #fafafa; }
+    header { padding: 12px 14px; background: #1a1a1a; color: #fff; }
+    header h1 { margin: 0; font-size: 15px; font-weight: 600; }
+    header p { margin: 4px 0 0; opacity: 0.7; font-size: 11px; }
+    .bar { display: flex; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #eee; }
+    button { flex: 1; padding: 8px; border: 1px solid #ccc; background: #fff; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    button:hover { background: #f0f0f0; }
+    #list { max-height: 380px; overflow: auto; padding: 8px 14px 14px; }
+    .row { background: #fff; border: 1px solid #eee; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
+    .meta { font-size: 11px; color: #666; margin-bottom: 4px; }
+    .txt { word-break: break-word; }
+    #empty { text-align: center; color: #999; padding: 40px 10px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SurakshaNet</h1>
+    <p>Append-only evidence · hash chain · max 100</p>
+  </header>
+  <div class="bar">
+    <button id="verify">Verify chain</button>
+    <button id="export">Export JSON</button>
+  </div>
+  <div id="list"><div id="empty">No incidents yet</div></div>
+  <script type="module" src="./popup.js"></script>
+</body>
+</html>

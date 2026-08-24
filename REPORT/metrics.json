@@ -1,0 +1,72 @@
+{
+  "leakage": {
+    "test_a": {
+      "n": 6728,
+      "leakage_rows": 0
+    },
+    "test_c": {
+      "n": 2479,
+      "leakage_rows": 0
+    }
+  },
+  "tests": {
+    "test_a_macd_hindi": {
+      "n": 6728,
+      "accuracy": 0.8504756242568371,
+      "f1_macro": 0.8503755484494684,
+      "precision_macro": 0.8502852741010569,
+      "recall_macro": 0.8507707535627704,
+      "confusion_matrix": [
+        [
+          2948,
+          548
+        ],
+        [
+          458,
+          2774
+        ]
+      ]
+    },
+    "test_c_davidson": {
+      "n": 2479,
+      "accuracy": 0.9600645421540944,
+      "f1_macro": 0.927601029074815,
+      "precision_macro": 0.9280205048250121,
+      "recall_macro": 0.9271829209350576,
+      "confusion_matrix": [
+        [
+          2020,
+          49
+        ],
+        [
+          50,
+          360
+        ]
+      ]
+    }
+  },
+  "threshold_val": [
+    {
+      "threshold": 0.5,
+      "accuracy": 0.8457193816884662,
+      "f1_macro": 0.8456750745387244,
+      "precision_macro": 0.8456635119252759,
+      "recall_macro": 0.8459632409545804
+    },
+    {
+      "threshold": 0.65,
+      "accuracy": 0.8449762187871581,
+      "f1_macro": 0.844963474318551,
+      "precision_macro": 0.8451949297280816,
+      "recall_macro": 0.845453799302631
+    },
+    {
+      "threshold": 0.8,
+      "accuracy": 0.8411117717003567,
+      "f1_macro": 0.8410864071637492,
+      "precision_macro": 0.8429664116382243,
+      "recall_macro": 0.8422315808540506
+    }
+  ],
+  "int8_size_mb": 118.3
+}

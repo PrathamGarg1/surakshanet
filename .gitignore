@@ -1,0 +1,8 @@
+checkpoints/
+dataset/raw/
+node_modules/
+dist/
+.DS_Store
+*.pyc
+__pycache__/
+_modal_artifacts.tar.gz
