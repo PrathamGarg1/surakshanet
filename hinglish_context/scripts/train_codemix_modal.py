@@ -1,6 +1,7 @@
 """Train SurakshaNet ablations: baseline / layer1 / layer1_synth.
 
 Mixes:
+  shipped_v2    = hindi + davidson_80 + original hinglish_train  (data protocol of the shipped extension model)
   baseline      = davidson_80 + original hinglish_train          (shipped v1)
   layer1        = hindi + davidson_80 + cleaned hinglish_train
   layer1_synth  = layer1 + synth_accepted (synth down-weighted)
@@ -40,6 +41,14 @@ ID2LABEL = {0: "abusive", 1: "non-abusive"}
 LABEL2ID = {"abusive": 0, "non-abusive": 1}
 
 MIX_CONFIG = {
+    # Data protocol recorded in the shipped extension model's metrics.json
+    # (hindi_train + davidson_80 + hinglish_train; 20,183 + 19,826 + 18,920 = 58,929 messages, 3 epochs).
+    "shipped_v2": {
+        "use_hindi": True,
+        "codemix_key": "codemix_hinglish",
+        "use_synth": False,
+        "synth_weight": 1.0,
+    },
     "baseline": {
         "use_hindi": False,
         "codemix_key": "codemix_hinglish",

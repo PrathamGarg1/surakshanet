@@ -33,16 +33,18 @@ Results and open items: [`RESULTS.md`](RESULTS.md). Dataset description: [`datas
 
 ## Reproducing
 
+The exact, step-by-step procedure (environment, expected outputs, what was verified) is in the [root README](../README.md#reproducing-the-results). In short, from the repository root:
+
 ```bash
-pip install -r ../requirements.txt
-python scripts/flatten_dataset.py                          # dataset/all/*.jsonl
-python scripts/train_v2.py --mode thread   --epochs 2      # writes artifacts_v2/model_thread
-python scripts/train_v2.py --mode isolated --epochs 2      # last-message-only control
-python gru/embed_lines.py && python gru/train_gru.py       # frozen encoder + GRU
-node gru/parity_test.mjs
+pip install -r requirements.txt
+python thread_benchmark/scripts/flatten_dataset.py     # dataset/all/*.jsonl (83,672 / 10,765 / 10,563)
+bash   thread_benchmark/scripts/run_training.sh        # both models + benchmark -> artifacts_v2/cloud_results/
+python thread_benchmark/gru/embed_lines.py && python thread_benchmark/gru/train_gru.py
+node   thread_benchmark/gru/parity_test.mjs
+python thread_benchmark/quant/export_quantize.py && python thread_benchmark/quant/eval_quant.py
 ```
 
-`quant/export_quantize.py`, `quant/eval_quant.py` and `external_eval/eval_external.py` read the cloud run's models from `artifacts_v2/cloud_results/model_{thread,isolated}`; copy the trained models there (or point the scripts at your own run). The GPU run used `cloud/launch_train_ec2.sh` (g4dn.xlarge, 19.8 minutes, about USD 0.18).
+The GPU run used `cloud/launch_train_ec2.sh` (g4dn.xlarge, 19.8 minutes, about USD 0.18) with the same training commands as `run_training.sh`.
 
 Notes:
 - `scripts/build_dataset.py` rebuilds the dataset from the Bedrock generation cache (not part of this repository) and **deletes `dataset/len_*` first**. Do not run it without the cache; use `flatten_dataset.py` instead.
