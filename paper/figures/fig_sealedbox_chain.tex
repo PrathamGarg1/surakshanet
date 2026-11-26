@@ -15,13 +15,13 @@
   \draw[arr] (hkdf) -- (gcm);
 
   % Bottom row: Hash chain + Ed25519 + TPM NV Extend
-  \node[cbox=purple!9, text width=2.35cm, below=9mm of msg] (r1) {\textbf{Record $i{-}1$}\\{\fontsize{5.8}{6.8}\selectfont\texttt{seq}: $i{-}1$, \texttt{sealed}$_{i-1}$\\$H_{i-1} = \text{SHA256}(\cdot)$\\$\sigma_{i-1} = \text{Ed25519}(H_{i-1})$}};
+  \node[cbox=purple!9, text width=2.35cm, below=11.5mm of msg] (r1) {\textbf{Record $i{-}1$}\\{\fontsize{5.8}{6.8}\selectfont\texttt{seq}: $i{-}1$, \texttt{sealed}$_{i-1}$\\$H_{i-1} = \text{SHA256}(\cdot)$\\$\sigma_{i-1} = \text{Ed25519}(H_{i-1})$}};
   \node[cbox=purple!15, text width=2.75cm, right=5mm of r1] (r2) {\textbf{Record $i$ (Appended)}\\{\fontsize{5.8}{6.8}\selectfont\texttt{seq}: $i$, \texttt{prev\_hash}: $H_{i-1}$\\\texttt{caller}: (UID, PID), \texttt{sealed}$_i$\\$H_i = \text{SHA256}(\text{canon}_i)$, $\sigma_i$}};
   \node[cbox=teal!12, text width=2.85cm, right=5mm of r2] (nv) {\textbf{TPM 2.0 NV Anchor}\\{\fontsize{5.8}{6.8}\selectfont Counter \texttt{0x01500043}: $\texttt{NV\_Inc}()$\\Digest \texttt{0x01500042}:\\$C_i = \text{SHA256}(C_{i-1} \Vert H_i)$}};
   \node[cbox=green!12, text width=2.1cm, right=5mm of nv] (pdf) {\textbf{Signed PDF}\\{\fontsize{5.8}{6.8}\selectfont Parent $SK_{\text{parent}}$ decrypts\\+ PKCS\#7 detached sig}};
 
   \draw[arr] (r1) -- node[above, font=\fontsize{5.8}{6.8}\selectfont]{$H_{i-1}$} (r2);
-  \draw[arr] (gcm.south) -- ++(0,-3.5mm) -| node[pos=0.22, above, font=\fontsize{5.8}{6.8}\selectfont]{ciphertext only} (r2.north);
+  \draw[arr] (gcm.south) -- ++(0,-4.5mm) -| node[pos=0.14, fill=white, inner sep=1.5pt, font=\fontsize{5.8}{6.8}\selectfont]{ciphertext only} (r2.north);
   \draw[arr] (r2) -- node[above, font=\fontsize{5.8}{6.8}\selectfont]{$H_i$} (nv);
   \draw[arr] (nv) -- (pdf);
 

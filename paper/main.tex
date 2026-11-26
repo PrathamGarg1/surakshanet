@@ -1,12 +1,98 @@
-\documentclass[sigconf,9pt]{acmart}
+\documentclass[11pt,a4paper]{article}
+
+% --- Page Geometry & Spacing ---
+\usepackage[a4paper, top=2.3cm, bottom=2.3cm, left=2.2cm, right=2.2cm]{geometry}
+\usepackage{setspace}
+\setstretch{1.18}
+\usepackage[parfill]{parskip}
+
+% --- Fonts & Typography ---
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Colors (SurakshaNet Navy + Orange Palette) ---
+\usepackage[dvipsnames,table]{xcolor}
+\definecolor{snNavy}{HTML}{1D1D1F}
+\definecolor{snAccent}{HTML}{F15A24}
+\definecolor{snSoftBg}{HTML}{F7F8FA}
+\definecolor{snBlueBg}{HTML}{EFF6FF}
+\definecolor{snBlueBorder}{HTML}{2563EB}
+\definecolor{snGreenBg}{HTML}{ECFDF5}
+\definecolor{snGreenBorder}{HTML}{059669}
+\definecolor{snOrangeBg}{HTML}{FFF7ED}
+\definecolor{snOrangeBorder}{HTML}{EA580C}
+\definecolor{snMuted}{HTML}{5A606A}
+
+% --- Graphics, Tables, Floats & Diagrams ---
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{subcaption}
-\usepackage{placeins}
-\usepackage{dblfloatfix}
-\usepackage{afterpage}
 \usepackage{tabularx}
 \usepackage{array}
+\usepackage{float}
+\usepackage{caption}
+\captionsetup{
+  font=small,
+  labelfont={bf,color=snNavy},
+  textfont={color=snMuted},
+  margin=8pt
+}
+\usepackage{enumitem}
+\setlist{itemsep=3pt, topsep=4pt}
+
+% --- Callout Boxes ---
+\usepackage[most]{tcolorbox}
+\newtcolorbox{summarybox}[1]{
+  colback=snSoftBg,
+  colframe=snNavy,
+  colbacktitle=snNavy,
+  coltitle=white,
+  fonttitle=\bfseries\small,
+  title=#1,
+  arc=3pt,
+  boxrule=0.8pt,
+  left=10pt, right=10pt, top=7pt, bottom=7pt
+}
+\newtcolorbox{takeawaybox}[1]{
+  colback=snOrangeBg,
+  colframe=snOrangeBorder,
+  borderline west={3pt}{0pt}{snAccent},
+  fonttitle=\bfseries\small\color{snAccent},
+  colbacktitle=snOrangeBg,
+  title=#1,
+  arc=2pt,
+  boxrule=0.4pt,
+  left=10pt, right=10pt, top=6pt, bottom=6pt
+}
+
+% --- Section Headings ---
+\usepackage{titlesec}
+\titleformat{\section}
+  {\Large\bfseries\color{snNavy}}
+  {\textcolor{snAccent}{\thesection.}}
+  {0.6em}
+  {}
+  [\vspace{2pt}{\color{snAccent!45}\titlerule[1pt]}]
+\titleformat{\subsection}
+  {\large\bfseries\color{snNavy}}
+  {\textcolor{snMuted}{\thesubsection}}
+  {0.5em}
+  {}
+\titlespacing*{\section}{0pt}{16pt}{6pt}
+\titlespacing*{\subsection}{0pt}{12pt}{4pt}
+
+% --- Header & Footer ---
+\usepackage{fancyhdr}
+\setlength{\headheight}{22pt}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\footnotesize\color{snMuted}\textbf{SurakshaNet} --- Project Technical Report}
+\fancyhead[R]{\footnotesize\color{snMuted}IIT Ropar}
+\fancyfoot[C]{\footnotesize\color{snMuted}Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{snNavy!20}\leaders\hrule height \headrulewidth\hfill}}
+
+% --- TikZ & PGFPlots (for existing and new vector figures) ---
 \usepackage{tikz}
 \usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 \usepackage{pgfplots}
@@ -15,465 +101,498 @@
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{R}{>{\raggedleft\arraybackslash}X}
 
-% diagram styles
 \tikzset{
   blk/.style={draw=black!65, rounded corners=2pt, fill=#1, align=center,
               font=\fontsize{7.2}{8.4}\selectfont, inner sep=3pt},
   arr/.style={-{Stealth[length=1.8mm]}, thick, black!70}
 }
 
-%% Rights & Conference Info (MobiSys '26)
-\copyrightyear{2026}
-\acmYear{2026}
-\setcopyright{cc}
-\setcctype{by}
-\acmConference[MobiSys Companion '26]{The 24th Annual International Conference on Mobile Systems, Applications and Services}{June 21--25, 2026}{Cambridge, United Kingdom}
-\acmBooktitle{The 24th Annual International Conference on Mobile Systems, Applications and Services (MobiSys Companion '26), June 21--25, 2026, Cambridge, United Kingdom}
-\acmDOI{10.1145/3812835.3814864}
-\acmISBN{979-8-4007-2711-5/2026/08}
+% --- Hyperlinks & Clean URL Wrapping ---
+\usepackage{xurl}
+\usepackage[colorlinks=true, linkcolor=snNavy, citecolor=snAccent, urlcolor=snBlueBorder]{hyperref}
 
 \begin{document}
 
-\title{Poster: SurakshaNet: Privacy-First, Edge-Deployed Multilingual Abusive Language Detection}
+%==============================================================
+% COVER / TITLE PAGE
+%==============================================================
+\thispagestyle{empty}
+\begin{center}
+  \vspace*{-0.4cm}
+  \includegraphics[width=2.1cm]{iitr_logo.png}\\[0.25cm]
+  {\small\bfseries\color{snAccent}\MakeUppercase{Indian Institute of Technology Ropar \textbullet{} Technical Project Report}}\\[0.2cm]
+  {\Huge\bfseries\color{snNavy} SurakshaNet}\\[0.15cm]
+  {\large\color{snMuted} On-Device Multilingual Abuse Detection, Context-Aware Chat Models,\\and a Tamper-Evident Parent Evidence Vault}\\[0.35cm]
+  \rule{0.75\textwidth}{1.2pt}\\[0.35cm]
 
-\author{Aamod Jain$^{*}$}
-\affiliation{%
-  \institution{Indian Institute of Technology Ropar}
-  \city{Punjab}
-  \country{India}
-}
-\email{2023csb1092@iitrpr.ac.in}
-\author{Pratham Garg$^{*}$}
-\affiliation{%
-  \institution{Indian Institute of Technology Ropar}
-  \city{Punjab}
-  \country{India}
-}
-\email{2023csb1147@iitrpr.ac.in}
-\author{Geeta Yadav}
-\affiliation{%
-  \institution{Indian Institute of Technology Ropar}
-  \city{Punjab}
-  \country{India}
-}
-\email{geeta@iitrpr.ac.in}
+  \begin{tabular}{ccc}
+    \textbf{Aamod Jain}$^*$ & \textbf{Pratham Garg}$^*$ & \textbf{Geeta Yadav} \\
+    \footnotesize\color{snMuted}\texttt{2023csb1092@iitrpr.ac.in} &
+    \footnotesize\color{snMuted}\texttt{2023csb1147@iitrpr.ac.in} &
+    \footnotesize\color{snMuted}\texttt{geeta@iitrpr.ac.in}
+  \end{tabular}\\[0.2cm]
+  {\footnotesize\color{snMuted}$^*$Equal contribution \quad|\quad Department of Computer Science and Engineering, IIT Ropar}\\[0.1cm]
+  {\footnotesize\color{snMuted}Earlier poster published at ACM MobiSys Companion '26 (\href{https://doi.org/10.1145/3812835.3814864}{doi:10.1145/3812835.3814864})}
+\end{center}
 
-\begin{abstract}
-Traditional abusive language moderation often relies on cloud-based APIs, raising privacy concerns and introducing network latency. We present \textit{SurakshaNet}, an edge-deployed system for real-time multilingual toxicity detection on web messaging platforms, with a prototype implemented for WhatsApp Web. By combining INT8 static quantization with ONNX Runtime Web and WebAssembly (WASM), we reduce a 471 MB transformer model to 113 MB (about 76\%) while incurring less than 0.11\% accuracy loss. Implemented natively as a Chrome Extension using a Manifest V3 Service Worker, \textit{SurakshaNet} achieves a median inference latency of 28 ms and ensures that raw user data never leaves the device. We further extend the system with Hinglish training data, a gated conversational-context window, and child-safety features (parental control, harmful-message hiding, and screenshot evidence collection), and show that the local model matches or outperforms evaluated cloud LLMs on several conversational slices. We add a 105,000-thread, five-class benchmark in English, Hindi and Hinglish, on which thread-aware models reach 97.9\% test accuracy with a 118\,MB INT8 model. Finally, to prevent children or user-level attackers from disabling the extension or deleting captured abuse records from browser storage, we design and implement a privilege-separated, tamper-evident \textit{Parent Evidence Vault} combining OS-admin Chrome Enterprise policy locks, Web Crypto public-key sealed-box encryption (ECDH P-256 + HKDF-SHA256 + AES-256-GCM), a write-only \texttt{root}/\texttt{SYSTEM} append-only Go daemon with Ed25519-signed SHA-256 hash chaining and TPM~2.0 NVRAM anchoring, and PKCS\#7 digitally signed PDF evidence exports—adding only 3.6\,ms median end-to-end capture overhead while preserving 100\% offline privacy.
-\end{abstract}
+\vspace{0.15cm}
 
-\begin{CCSXML}
-<ccs2012>
-   <concept>
-       <concept_id>10002978.10003022</concept_id>
-       <concept_desc>Security and privacy~Software and application security</concept_desc>
-       <concept_significance>500</concept_significance>
-       </concept>
- </ccs2012>
-\end{CCSXML}
+% Headline Metric Strip (equal height cards)
+\begin{center}
+\begin{tabularx}{\textwidth}{CCCC}
+  \begin{tcolorbox}[colback=snSoftBg, colframe=snNavy!25, arc=3pt, boxrule=0.6pt, halign=center, valign=center, height=2.25cm, left=4pt, right=4pt, top=4pt, bottom=4pt]
+    {\Large\bfseries\color{snAccent} 118\,MB}\\[2pt]
+    {\scriptsize\color{snMuted} INT8 On-Device Model\\(75\% smaller)}
+  \end{tcolorbox} &
+  \begin{tcolorbox}[colback=snSoftBg, colframe=snNavy!25, arc=3pt, boxrule=0.6pt, halign=center, valign=center, height=2.25cm, left=4pt, right=4pt, top=4pt, bottom=4pt]
+    {\Large\bfseries\color{snAccent} 28\,ms}\\[2pt]
+    {\scriptsize\color{snMuted} Local Inference Time\\(Zero cloud calls)}
+  \end{tcolorbox} &
+  \begin{tcolorbox}[colback=snSoftBg, colframe=snNavy!25, arc=3pt, boxrule=0.6pt, halign=center, valign=center, height=2.25cm, left=4pt, right=4pt, top=4pt, bottom=4pt]
+    {\Large\bfseries\color{snAccent} 97.9\%}\\[2pt]
+    {\scriptsize\color{snMuted} 5-Class Thread Model\\(105k chat threads)}
+  \end{tcolorbox} &
+  \begin{tcolorbox}[colback=snSoftBg, colframe=snNavy!25, arc=3pt, boxrule=0.6pt, halign=center, valign=center, height=2.25cm, left=4pt, right=4pt, top=4pt, bottom=4pt]
+    {\Large\bfseries\color{snAccent} 3.6\,ms}\\[2pt]
+    {\scriptsize\color{snMuted} Tamper-Proof Vault\\Capture Overhead}
+  \end{tcolorbox}
+\end{tabularx}
+\end{center}
 
-\ccsdesc[500]{Security and privacy~Software and application security}
-\keywords{Abusive language detection, Privacy-preserving AI, Edge computing}
-\maketitle
-\vspace{-0.5em}
-$^{*}$Equal contribution.
+\vspace{0.1cm}
+
+\begin{summarybox}{Executive Summary}
+\small
+Online abuse, bullying, and child grooming happen daily on chat platforms such as WhatsApp. Most safety tools send user messages to remote cloud servers to check for harmful language. That approach puts private chats at risk and adds network delay.
+
+We built \textbf{SurakshaNet}, a Chrome extension and security system that detects harmful messages right inside the user's browser, with zero cloud uploads. This report covers all four stages of our project:
+\begin{enumerate}[itemsep=2pt, topsep=3pt]
+  \item \textbf{Local AI Detection (v1):} Shrinking a multilingual transformer model from 471\,MB to 113\,MB with INT8 quantization so it runs inside Chrome in 28\,ms.
+  \item \textbf{Hinglish Support \& Chat Window (v2):} Training on Romanized Hindi (Hinglish) and adding a smart context window so abuse spread across multiple short replies is still caught (recall jumps from 28.9\% to 76.1\%).
+  \item \textbf{Five-Class Conversation Benchmark:} Building a 105{,}000-thread dataset across English, Hindi, and Hinglish covering benign chat, friendly sarcasm, hostile abuse, sexual harassment, and predatory grooming, reaching 97.9\% test accuracy with a context-aware INT8 model.
+  \item \textbf{Tamper-Evident Parent Evidence Vault (v3):} Closing the biggest real-world child-safety gap. Instead of keeping plain logs in browser storage where anyone can delete them, we lock Chrome using OS Administrator policies, encrypt every flagged message with the parent's public key, store it in a write-only \texttt{root}/\texttt{SYSTEM} append-only vault with hash chaining and TPM~2.0 hardware anchoring, and export digitally signed PDFs that catch any single-byte edit.
+\end{enumerate}
+\end{summarybox}
+
+\newpage
+
+% Table of Contents
+\tableofcontents
+\vspace{0.6cm}
+\begin{takeawaybox}{How to Read This Report}
+Sections~1 to 3 explain the core on-device detector and how it handles English, Hindi, and Hinglish chats. Sections~4 and 5 cover our 105{,}000-thread five-class dataset and context-aware models. Section~6 details our newest milestone, the \textbf{Admin-Locked Parent Evidence Vault}, complete with live screenshots, tamper-attack proofs, and real speed tests.
+\end{takeawaybox}
+
+\newpage
 
 %==============================================================
-\section{Introduction}
-Malicious actors increasingly exploit social media platforms to spread harmful content \cite{Mathew_Saha_Yimam_Biemann_Goyal_Mukherjee_2021}, creating toxic online spaces where women, children, and other marginalized groups are frequently targeted. As gender-based harassment grows in code-mixed Indian contexts (Hinglish/Hindi) \cite{NEURIPS2022_a7c4163b}, accurate and timely abuse detection becomes essential for safe user interaction. There is an urgent need for proactive, privacy-preserving moderation tools. To address this, we develop \textit{SurakshaNet}, a browser-based extension for real-time detection of harmful and abusive conversations.
+\section{Introduction and Problem Motivation}
+%==============================================================
 
-\par Our contributions are:
+Online harassment and child grooming are serious problems on messaging apps, especially for women and young users \cite{Mathew_Saha_Yimam_Biemann_Goyal_Mukherjee_2021}. In India, people rarely type in pure textbook English or pure Devanagari Hindi; most daily chats mix both languages in Roman script, known as \textbf{Hinglish} \cite{NEURIPS2022_a7c4163b}. Existing moderation tools struggle with three practical gaps:
+
 \begin{itemize}
-    \item A lightweight web extension for in-browser abuse detection on web apps, with parental controls, harmful-message hiding, and automatic screenshot evidence collection.
-    \item A multilingual abuse detection pipeline with a size-optimized, edge-deployable model and forensic evidence support.
-    \item A Hinglish dataset derived from MACD and a conversation-aware (gated window) inference strategy, benchmarked against cloud-based LLMs.
-    \item A five-class, context-thread dataset (benign, friendly sarcasm, hostile abuse, sexual harassment, predatory grooming) and thread-aware models trained on it.
-    \item A privilege-separated, tamper-evident \textit{Parent Evidence Vault} (Section~\ref{sec:vault}) combining Chrome Enterprise policy locks, parent public-key sealed-box encryption, a write-only privileged OS daemon with kernel append-only storage, TPM~2.0 hardware anchoring, and PKCS\#7 digitally signed PDF export.
+  \item \textbf{Privacy Risk:} Standard cloud APIs require sending private chats to outside servers. Families and children should not have to expose every personal conversation just to stay safe.
+  \item \textbf{Missing Chat Context:} Looking at one message at a time fails badly. A short reply like \textit{``try using your head''} can be harmless joking among friends or a cruel attack, depending on earlier messages. Predatory grooming also unfolds slowly over several turns.
+  \item \textbf{Easy Evidence Deletion:} A browser extension that saves flagged chats in local browser storage is easy to defeat. A child (or an abuser instructing the child) can uninstall the extension, click \textit{Clear}, or wipe Chrome's data in seconds, erasing all proof.
 \end{itemize}
 
+\textbf{SurakshaNet} tackles all three problems together while keeping raw chats strictly on the user's own computer. Our complete work makes four main contributions:
+
+\begin{enumerate}
+  \item \textbf{Fast In-Browser AI Extension:} A Manifest~V3 Chrome extension for WhatsApp Web that runs an INT8-quantized multilingual MiniLM model inside a browser Service Worker using ONNX Runtime Web and WebAssembly.
+  \item \textbf{Hinglish Training and Smart Context Window:} A Hinglish dataset built from MACD plus a gated rolling window that checks recent chat history whenever a short reply arrives.
+  \item \textbf{105{,}000-Thread Five-Class Dataset and Models:} A balanced multilingual dataset separating benign talk, friendly sarcasm, hostile abuse, sexual harassment, and predatory grooming, along with compact thread-aware models.
+  \item \textbf{Tamper-Evident Parent Evidence Vault:} An OS-admin-locked Chrome setup, public-key sealed-box encryption, a write-only \texttt{root}/\texttt{SYSTEM} vault daemon with hash chaining and TPM~2.0 hardware anchoring, and digitally signed PDF reports.
+\end{enumerate}
+
 %==============================================================
-\section{System Implementation}
+\section{Core System: On-Device Detection on WhatsApp Web}
+%==============================================================
 
-\subsection{Detection Pipeline}
-The core intelligence follows a 5-step pipeline, as shown in Figure \ref{fig:overview}, beginning with multilingual abusive-language datasets and proceeding through model training. We trained our model on a combined dataset of 42,487 records, consisting of the MACD Hindi subset \cite{NEURIPS2022_a7c4163b} and the Davidson English (EN) dataset (90\% training split)\footnote{https://github.com/t-davidson/hate-speech-and-offensive-language}. The MACD dataset is a large-scale, human-annotated multilingual corpus from ShareChat, balanced with 49\% abusive content. This combined training ensures the model is robust to both Hindi and English offensive language. A fine-tuned \texttt{MiniLM-L12-v2} is aggressively compressed using ONNX quantization \cite{jacob2018quantization}, shrinking its RAM footprint to approximately 89\,MB. This substantial reduction enables efficient browser-native execution through \texttt{onnxruntime-web}, making real-time edge inference practical.
+\subsection{How the Local Pipeline Works}
+Figure~\ref{fig:overview} shows how SurakshaNet works from model training to live message scanning. We first trained a multilingual \texttt{MiniLM-L12-v2} classifier \cite{reimers2020multilingual,wang2020minilm} on 42{,}487 messages combining the MACD Hindi dataset \cite{NEURIPS2022_a7c4163b} and the Davidson English dataset \cite{davidson2017automated}.
 
-\begin{figure*}[!t]
+A full-precision transformer takes about 471\,MB on disk, which is too heavy for a browser extension. Using ONNX INT8 quantization \cite{jacob2018quantization}, we compressed the model to 113\,MB (a 76\% reduction) and kept its RAM footprint near 89\,MB. Inside Chrome, a content script watches incoming WhatsApp Web messages using a \texttt{MutationObserver}, sends each message to the extension's background Service Worker, and attaches a clear warning banner when abuse is detected.
+
+\begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{system_overview.png}
-  \caption{End-to-end architecture of \textit{SurakshaNet}, including multilingual dataset preparation, transformer model training, INT8 quantization, Chrome-based edge deployment via ONNX Runtime Web and WASM, real-time abuse detection through DOM interception, and forensic evidence logging.}
+  \caption{Overall SurakshaNet workflow: multilingual dataset preparation, transformer fine-tuning, INT8 compression, browser-side ONNX/WASM execution on WhatsApp Web, and local evidence logging.}
   \label{fig:overview}
-\end{figure*}
+\end{figure}
 
-The model runs in a browser Service Worker, allowing for zero-network-dependency classification. A \texttt{MutationObserver} script monitors platforms like WhatsApp Web by injecting warning banners upon detecting toxic nodes. The optimized model is deployed as a Chrome extension, where ONNX-based in-browser inference supports fast, lightweight, and privacy-preserving detection of harmful content. This design makes the framework suitable for edge environments by avoiding cloud inference, reducing latency, and protecting sensitive user communication. Finally, the framework supports forensic evidence collection through DOM snapshots, chain-of-custody logs, AES-256 local encryption, and court-admissible incident report generation.
+Figure~\ref{fig:demo} shows the extension running live on WhatsApp Web. It catches harsh Hindi and Hinglish insults with high confidence while ignoring normal everyday messages. Source code is hosted on GitHub.\footnote{\url{https://github.com/PrathamGarg1/surakshanet}}
 
-\par As shown in Figure \ref{fig:demo}, the system identifies both ``Harmful'' and ``Critical'' threats in multilingual contexts. It correctly classifies Hinglish/Hindi slang (e.g., catching abuse with 98.6\% confidence) while maintaining a low false-positive rate for neutral conversational Hindi. The source code is available at the Project Repository\footnote{https://github.com/PrathamGarg1/surkashanet}.
-
-\begin{figure}[h!]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=1\linewidth]{whatsapp_demo.jpeg}
-  \caption{Examples of \textit{SurakshaNet} detecting abusive messages in real time on WhatsApp Web, showing severity-aware alerts.}
+  \includegraphics[width=0.68\textwidth]{whatsapp_demo.jpeg}
+  \caption{Live WhatsApp Web screenshot showing SurakshaNet flagging abusive Hindi and Hinglish messages in real time with severity alerts.}
   \label{fig:demo}
 \end{figure}
 
-\subsection{Child-Safety Enhancements}
-To move \textit{SurakshaNet} from a basic abusive-language detector toward a more complete child-safety system, we added the following features.
+\subsection{First-Stage Speed and Accuracy}
+Table~\ref{tab:quant_summary} summarizes the performance of our initial v1 quantized model. It processes a message in a median of \textbf{28\,ms} and loses less than \textbf{0.11\%} accuracy compared to its unquantized FP32 version. On Hindi alone it scores 84.66\%, which is only 1.68 points behind the much larger XLM-R Base model from the MACD paper (which has $\sim$275M parameters and cannot run inside a browser). On combined Hindi and English data, SurakshaNet reaches \textbf{88.01\%} accuracy.
 
-\par\textbf{Dual login architecture.} The extension supports two authentication modes: a \textit{parent login}, through which parents set up an account for their child's safety, and a \textit{normal user login}, through which general users set up accounts for themselves.
-
-\par\textbf{Child Protection Mode.} This mode prevents the child from disabling or circumventing the extension. While it is enabled, security-sensitive operations such as disabling the extension or logging out require the \textbf{master password} configured by the parent. This matters because the protection mechanism should not be easily removable by the user it is intended to protect.
-
-\par\textbf{Automatic screenshot evidence.} When an abusive-language incident is detected, the extension automatically captures a screenshot of the relevant WhatsApp chat window. The screenshot is stored with the incident record and shown on the parent dashboard, giving context beyond the flagged text. An incident record therefore contains the flagged message text, the chat-window screenshot, sender information, and a timestamp.
-
-\par\textbf{Harmful message visibility toggle.} Parents can choose to visually conceal messages classified as harmful from the child instead of merely flagging them, adding a preventive layer on top of detection.
-
-\par\textbf{Overall workflow.} The parent authenticates, configures the child-safety settings, and enables Child Protection Mode. The child then uses the browser through the normal user session while messages are analysed locally by the detection model. Harmful messages are flagged or hidden according to the configured policy, and the relevant chat window is captured as evidence. The parent later reviews incidents and evidence through the parental interface, and security-sensitive operations remain protected by the master password.
-
-\section{Empirical Evaluation}
-
-\subsection{Quantization and Hindi/English Accuracy}
-As shown in Table \ref{tab:quant_summary}, the quantized model achieves a median latency of 28\,ms and a compact memory footprint of approximately 89\,MB, making it suitable for resource-constrained real-time inference. Our model achieves an accuracy of 84.66\% on Hindi-only content (Test A) and 88.01\% on Hindi+English content (Test B). The MACD paper reports 86.34\% accuracy using a fine-tuned XLM-R Base model on Hindi-only data. While our edge model shows a 1.68\% performance trade-off on Hindi-only tasks relative to this baseline, XLM-R Base (with approximately 270--278 million parameters) is infeasible for in-browser deployment due to its prohibitive memory footprint, far exceeding the RAM constraints of a browser runtime. Suitability for browser-native, privacy-first edge inference was the primary design constraint governing model selection. Crucially, for the multilingual Hindi+English setting, our model achieves 88.01\%---surpassing the MACD baseline (which reports no English-inclusive accuracy)---demonstrating stronger generalization across languages. The observed accuracy degradation relative to the non-quantized version of our own model is negligible, remaining below 0.11\%. In addition, the model size is reduced from 471\,MB to 113\,MB, a 76\% reduction, substantially improving storage efficiency and portability. All incidents are timestamped to millisecond precision and hashed (SHA-256) to ensure tamper-proofness. In the future, we will explore blockchain-based mechanisms to securely store forensic evidence in the cloud.
-
-\begin{table}[h!]
+\begin{table}[H]
 \centering
-\caption{Post-Quantization Performance Summary}
+\caption{Performance summary of the initial v1 INT8 browser model.}
 \label{tab:quant_summary}
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{ll}
-\toprule
-\textbf{Metric} & \textbf{Value} \\
-\midrule
-Inference Latency & 28 ms \\
-RAM Footprint & $\sim$89 MB \\
-Accuracy -- Original Paper (XLM-R, Hindi) & 86.34\% (not browser-deployable) \\
-Accuracy (Test A: SurakshaNet, Hindi-only) & 84.66\% \\
-Accuracy (Test B: SurakshaNet, Hindi+Eng) & 88.01\% (no baseline from paper) \\
-Performance Delta (Hindi-only vs.\ \cite{NEURIPS2022_a7c4163b}) & $-$1.68\% \\
-Quantization Loss & $<$0.11\% (vs.\ non-quantized model) \\
-Size Reduction & 76\% (471 MB $\rightarrow$ 113 MB) \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-%==============================================================
-\section{Extension: Hinglish Data and Conversational Context}
-The sections above describe \textit{SurakshaNet} as first presented. The rest of this report extends it in three steps: a Hinglish-aware encoder with a conversational-context window (this section), a five-class thread benchmark (Section~\ref{sec:data}), and thread-aware models trained on it (Section~\ref{sec:models}). Numbers in this and the following sections refer to the retrained extension model, not to the first model of Table~\ref{tab:quant_summary}.
-
-\subsection{Hinglish Dataset and Retrained Encoder}
-A major limitation of standard Hindi/English abusive-language datasets is their mismatch with how many people in India actually write online: Hindi and English are frequently mixed within a sentence, often in Romanized Hindi (Hinglish). To address this, the MACD dataset was converted into a Hinglish dataset using a Qwen-based LLM pipeline. For comparison, we also implemented and evaluated the data-generation strategies described in CodeMixBench \cite{yang-chai-2025-codemixbench}, a benchmark for evaluating language models on code-mixed text, which also proposes generating synthetic code-mixed text by combining word substitution with LLM-based prompting. The extension encoder was retrained on 58{,}929 messages (MACD Hindi 20{,}183, Davidson English 19{,}826, Hinglish 18{,}920) and tested on 15{,}575 held-out messages. Dynamic INT8 quantization shrinks it from 470.6\,MB to 118.4\,MB (75\%), and accuracy is unchanged within 0.15 points on every test set: 85.1\% on Hindi, 84.4\% on Hinglish, 96.7\% on English and 86.5\% on the mixed set (Figure~\ref{fig:results1}).
-
-\begin{figure*}[!t]
-  \centering
-  \resizebox{0.97\textwidth}{!}{\input{figures/fig_results1}}
-  \caption{Extension model. Left: INT8 quantization cuts the model size by 75\%. Centre: test accuracy before and after quantization. Right: share of split-narrative abuse detected with the current message only, the whole chat, and the gated window shipped in the extension (frozen Hinglish test set).}
-  \label{fig:results1}
-\end{figure*}
-
-\subsection{Evaluation Protocols}
-The complete evaluation test set was frozen before benchmarking so that results are directly comparable across all methods. The final benchmark uses 6,368 Hinglish messages, a classification threshold of 0.5, and the INT8-quantized MiniLM as the primary model for the task of abusive vs.\ non-abusive detection. The test data is divided into conversation slices: single messages (6{,}368), split narratives (1{,}500), benign conversations (800), and abusive messages appearing after harmless small talk (800). In the split-narrative and small-talk slices all positive examples are abusive, so accuracy on these slices equals recall. We compare several ways of handling conversational context (Table~\ref{tab:evaluation_protocols}). The LLM experiments were used for benchmarking only: the \textit{SurakshaNet} extension makes no Amazon Bedrock API calls and the shipped system uses the locally deployed INT8 model.
-
-\begin{table}[t]
-\centering
-\caption{Evaluation protocols used for conversational abusive-language detection.}
-\label{tab:evaluation_protocols}
 \small
-\begin{tabularx}{\linewidth}{@{}l X@{}}
+\begin{tabularx}{0.92\textwidth}{l X}
 \toprule
-\textbf{Setup} & \textbf{Description} \\
+\textbf{Metric} & \textbf{Measured Result} \\
 \midrule
-Paper protocol &
-Only the current message is classified. This follows the one-instance setup used for the CodeMixBench-based evaluation. \\
-\addlinespace[3pt]
-LLM window &
-The full conversation history is concatenated into one string and classified as a single instance. \\
-\addlinespace[3pt]
-Live LLM &
-One-shot evaluation with Amazon Bedrock models at temperature zero; the model returns only \texttt{abusive} or \texttt{non-abusive}. \\
-\addlinespace[3pt]
-Shipped gate &
-The conversation window is evaluated only when the latest turn has fewer than eight tokens and history exists. The final score is the maximum of the current-message and conversation-window scores. \\
+Median Inference Speed & \textbf{28\,ms} per message (fully offline) \\
+Runtime Memory Usage & $\sim$89\,MB RAM inside Chrome \\
+Model Disk Size & 471\,MB $\rightarrow$ \textbf{113\,MB} (76\% reduction) \\
+Accuracy Loss from Quantization & Less than \textbf{0.11\%} vs.\ FP32 model \\
+Hindi-Only Test Accuracy & 84.66\% (vs.\ 86.34\% for non-browser XLM-R \cite{NEURIPS2022_a7c4163b}) \\
+Hindi + English Test Accuracy & \textbf{88.01\%} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+\subsection{Early Child-Safety Features}
+Before building our full OS-level vault (Section~\ref{sec:vault}), we also prototyped browser-side child-safety controls in the v1 branch: separate parent and standard login screens, a master-password lock for extension settings, an option to blur or hide harmful messages from the child's screen, and automatic chat screenshots saved alongside incident records. However, because those controls lived only inside Chrome, a determined user could still uninstall the extension or wipe browser storage, which directly motivated our v3 Evidence Vault.
 
-\begin{figure}[h!]
+%==============================================================
+\section{Hinglish Expansion and Conversational Window (v2)}
+%==============================================================
+
+\subsection{Retraining for Real-World Hinglish}
+To handle Romanized Hindi properly, we built a Hinglish dataset from MACD using a Qwen-based conversion pipeline and compared it with CodeMixBench \cite{yang-chai-2025-codemixbench}. We retrained the extension encoder on \textbf{58{,}929 messages} (20{,}183 Hindi, 19{,}826 English, and 18{,}920 Hinglish) and evaluated it on \textbf{15{,}575 held-out messages}.
+
+Dynamic INT8 quantization shrinks this v2 model from 470.6\,MB to \textbf{118.4\,MB} (75\% smaller) while keeping accuracy within 0.15 points across every language slice: \textbf{85.1\%} on Hindi, \textbf{84.4\%} on Hinglish, \textbf{96.7\%} on English, and \textbf{86.5\%} on mixed text (Figure~\ref{fig:results1}).
+
+\begin{figure}[H]
   \centering
-  \resizebox{\columnwidth}{!}{\input{figures/fig_gate}}
-  \caption{The gated conversational window used by the extension. Short replies, whose meaning depends on the chat, are scored together with the preceding turns.}
+  \resizebox{0.98\textwidth}{!}{\input{figures/fig_results1}}
+  \caption{Extension v2 results. Left: INT8 compression cuts size by 75\%. Centre: accuracy stays virtually unchanged after quantization. Right: split-narrative recall rises sharply when using the gated chat window.}
+  \label{fig:results1}
+\end{figure}
+
+\subsection{The Gated Chat Window}
+In real chats, an abuser often sends a slur in one message and follows up with short taunts. Across our 1{,}500 split-narrative Hinglish test cases, checking only the final line catches just \textbf{28.9\%} of attacks. On the other hand, blindly feeding the entire chat history into the model every time hurts accuracy on abuse after polite small talk (dropping it to 62.3\%).
+
+To get the best of both worlds, we designed a simple \textbf{gated window} (Figure~\ref{fig:gate} and Table~\ref{tab:evaluation_protocols}). Every new message is scored on its own. If the new message is short (fewer than 8 content words) and previous turns exist, SurakshaNet also scores the recent window (up to 8 turns / 96 tokens) and takes the higher score. This raises split-narrative detection to \textbf{76.1\%} while keeping \textbf{82.9\%} accuracy after small talk and \textbf{83.0\%} on harmless chats (single-message abusive F1 is 83.6\%).
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.88\textwidth}{!}{\input{figures/fig_gate}}
+  \caption{How the gated chat window works inside \texttt{sw.js} and \texttt{narrative\_cache.js}. Short replies are checked together with recent chat turns.}
   \label{fig:gate}
 \end{figure}
 
-\subsection{Conversational Results}
-Abuse is often spread over several messages: the abusive slur occurs outside the final turn in 1{,}468 of the 1{,}500 split-narrative cases. Scoring only the current message detects 28.9\% of them; scoring the whole conversation raises this to 79.3\% (Figure~\ref{fig:results1}, right). Whole-chat scoring, however, lowers accuracy on abuse after small talk to 62.3\%. The gated approach, which is the configuration selected for deployment, detects 76.1\% of split narratives while keeping 82.9\% accuracy when abuse follows small talk and 83.0\% on benign conversations. For single messages the abusive-class F1 score is 83.6\%.
+\begin{table}[H]
+\centering
+\caption{Comparison of chat-context strategies tested on the frozen Hinglish benchmark (6{,}368 messages).}
+\label{tab:evaluation_protocols}
+\small
+\begin{tabularx}{\textwidth}{l X}
+\toprule
+\textbf{Method} & \textbf{How It Works} \\
+\midrule
+Current message only & Classifies only the newest message in isolation (misses multi-message attacks). \\
+Full chat window & Joins the entire chat history into one input string every time (more false dilution after small talk). \\
+Cloud LLM check & One-shot prompt to Amazon Bedrock models (\texttt{Nova Micro}, \texttt{Qwen3 32B}) for offline benchmarking only. \\
+\textbf{Shipped gated window} & Scores the newest message, and also scores up to 8 recent turns only when the newest turn is short ($<8$ tokens); takes the maximum score. \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\subsection{Comparison with Cloud-Based LLMs}
-The same conversational examples were scored with two Amazon Bedrock models, \textbf{Nova Micro} and \textbf{Qwen3 32B}, using a one-shot prompt at temperature zero (Figure~\ref{fig:bedrock}). With the full conversation window the local INT8 model detects 77.5\% of split narratives, against 65.0\% for Qwen3 32B and 40.0\% for Nova Micro, and it is ahead of Nova Micro on abuse after small talk and on benign chats. On isolated insults, local recall (78.0\%) is on par with Qwen3 32B (76.0\%) and well above Nova Micro (40.8\%). The subsets are small (20 to 80 examples per slice, Qwen3 32B scored only on the split and insult slices, where the local model scores 80.0\% and 78.0\% on the same examples), so we read these results as ``competitive without any cloud dependency'' rather than as a ranking.
+\subsection{How the Local Model Compares with Cloud LLMs}
+We ran the same conversational test slices through two cloud LLMs on Amazon Bedrock (\textbf{Nova Micro} and \textbf{Qwen3 32B}) strictly as an offline benchmark (the extension itself never calls any cloud API). As Figure~\ref{fig:bedrock} shows, our 118\,MB local INT8 model achieves \textbf{77.5\%} recall on split narratives versus 65.0\% for Qwen3 32B and 40.0\% for Nova Micro, and matches Qwen3 32B on isolated insults (78.0\% vs.\ 76.0\%). Even though these LLM slices are small (20--80 samples each), the result shows that on-device moderation can compete strongly without sending a single message to the cloud.
 
-\begin{figure}[h!]
+\begin{figure}[H]
   \centering
-  \resizebox{\columnwidth}{!}{\input{figures/fig_bedrock}}
-  \caption{Local INT8 MiniLM versus cloud LLMs on conversational slices (percent correct, higher is better; subsets of 20--80 examples). Qwen3 32B was scored on the first two slices only.}
+  \resizebox{0.78\textwidth}{!}{\input{figures/fig_bedrock}}
+  \caption{Local INT8 MiniLM compared with cloud LLMs on Hinglish conversation slices (percent correct; subsets of 20--80 chats). Qwen3 32B was evaluated on the first two slices.}
   \label{fig:bedrock}
 \end{figure}
 
 %==============================================================
-\section{Extension: Five-Class Thread Dataset}\label{sec:data}
+\section{Five-Class Multilingual Thread Dataset}\label{sec:data}
+%==============================================================
 
-\subsection{Why a new dataset}
-Binary datasets classify one message at a time, yet the same line (``try using your head'') can be friendly teasing or a real attack depending on what came before (Figure~\ref{fig:chats}), and grooming or harassment is defined by who is talking to whom. We therefore built a dataset in which the \emph{label belongs to the last message given the earlier ones}. It has five classes (Table~\ref{tab:classes}) chosen from prior taxonomies \cite{vanhee2018cyberbullying,guest2021misogyny,banko2020taxonomy,waseem2017understanding,mandl2019hasoc} and aimed at women and children.
+Binary ``abusive vs.\ safe'' labels are not enough to protect children and women accurately. First, friendly teasing between close friends can look identical to real bullying if you ignore earlier turns (Figure~\ref{fig:chats}). Second, sexual harassment and child grooming need different responses than ordinary insults.
 
-\begin{figure}[h!]
+\begin{figure}[H]
   \centering
-  \resizebox{\columnwidth}{!}{\input{figures/fig_chats}}
-  \caption{Two generated English threads with the same last message. The earlier messages decide whether it is friendly sarcasm or hostile abuse.}
+  \resizebox{0.82\textwidth}{!}{\input{figures/fig_chats}}
+  \caption{Two chats ending with the exact same sentence. Only the earlier messages reveal whether it is friendly sarcasm or hostile abuse.}
   \label{fig:chats}
 \end{figure}
 
-\begin{table*}[t]
+We created a synthetic dataset of \textbf{105{,}000 multi-turn chats} where the label always describes the \textit{final message given the earlier conversation}. It covers \textbf{5 classes} (Table~\ref{tab:classes}) drawn from established safety taxonomies \cite{vanhee2018cyberbullying,guest2021misogyny,banko2020taxonomy,waseem2017understanding,mandl2019hasoc}, across \textbf{3 scripts} (English, Devanagari Hindi, and Roman Hinglish) and \textbf{4 chat lengths} (3, 5, 7, and 10 messages).
+
+\begin{table}[H]
 \centering
-\caption{The five classes. The last-message rule is what the generation prompt asks for.}
+\caption{The five conversation classes in our 105{,}000-thread dataset (21{,}000 threads per class).}
 \label{tab:classes}
 \small
-\begin{tabularx}{\textwidth}{@{}l l X X@{}}
+\begin{tabularx}{\textwidth}{l l X}
 \toprule
-\textbf{Id and class} & \textbf{Audience} & \textbf{Last-message rule in the prompt} & \textbf{Basis} \\
+\textbf{Class} & \textbf{Speakers} & \textbf{What the Final Message Represents} \\
 \midrule
-0 benign             & peers, adults, minors & Normal message. Includes hard negatives: parent--child, teacher--student, harmless surprise secrets, consensual flirting. & HASOC non-offensive \cite{mandl2019hasoc} \\
-1 friendly\_sarcasm  & peers & Playful, clearly affectionate teasing; the friends are laughing. & Van Hee et al.\ \cite{vanhee2018cyberbullying} \\
-2 hostile\_abuse     & peers, adults & Hostile personal insult meant to hurt. No slurs about caste, religion, gender, ethnicity or disability; no sexual content. & Waseem et al.\ \cite{waseem2017understanding}, MACD \\
-3 sexual\_harassment & adult woman (75\%) or man (25\%) & Unwanted suggestive remark or pressure; not graphic; the target deflects earlier. & Van Hee et al., Guest et al.\ \cite{guest2021misogyny} \\
-4 predatory\_grooming & minor (age 10--15) & Secrecy from parents, moving to a private app, meeting alone, age probing. No sexual content. & Banko et al.\ \cite{banko2020taxonomy} \\
+0. \texttt{benign} & Peers, adults, minors & Normal chat, including tricky safe examples such as parent--child talk, teacher guidance, and harmless surprise plans \cite{mandl2019hasoc}. \\
+1. \texttt{friendly\_sarcasm} & Close peers & Lighthearted, clearly playful teasing where both friends are joking \cite{vanhee2018cyberbullying}. \\
+2. \texttt{hostile\_abuse} & Peers, adults & Direct personal insult meant to hurt the other person \cite{waseem2017understanding,NEURIPS2022_a7c4163b}. \\
+3. \texttt{sexual\_harassment} & Adult targets & Unwanted suggestive comment or pressure after the target already pushed back \cite{guest2021misogyny}. \\
+4. \texttt{predatory\_grooming} & Minor (age 10--15) & Warning cues such as asking for secrecy from parents, moving to private apps, asking age, or meeting alone (no explicit sexual content) \cite{banko2020taxonomy}. \\
 \bottomrule
 \end{tabularx}
-\end{table*}
+\end{table}
 
-\subsection{Generation pipeline}
-Figure~\ref{fig:datagen} gives the full flow. A grid of 3 scripts (English, Hindi in Devanagari, Hinglish in Roman letters), 4 lengths (3, 5, 7, 10 messages) and 5 classes gives 60 cells of 1{,}750 threads each, 105{,}000 in total. For every thread a seeded sampler picks a class-specific subtype (31 in total), a topic (40), two names from a pool of 30, the audience and, where relevant, the target's gender and the child's age. A prompt built from this scenario asks Qwen3-32B \cite{qwen3} on Amazon Bedrock to return exactly $k$ alternating messages as JSON, where the last message follows the class rule. Rule-based validators then check the turn count, refusals, turn length, duplicates, script, and profanity or explicit words outside the hostile class, and sexualised words in grooming threads. In the last generation round, 98.6\% of attempts passed. Accepted threads are de-duplicated and split 80/10/10 (83{,}672 train, 10{,}765 validation, 10{,}563 test).
+Figure~\ref{fig:datagen} outlines how we generated and filtered the dataset. A seeded sampler selects from 31 subtypes, 40 topics, and 30 speaker names, then prompts Qwen3-32B \cite{qwen3} to produce structured JSON conversations. Automatic validators check turn counts, script rules, length limits, duplicates, and safety constraints (98.6\% pass rate in the final pass). To force models to use context, roughly half of the \texttt{friendly\_sarcasm} and \texttt{hostile\_abuse} threads end with the exact same line from a bank of 36 shared lines per script, split cleanly by line so no shared line leaks across train (83{,}672), validation (10{,}765), and test (10{,}563) sets. Each JSONL entry stores 17 structured columns (Table~\ref{tab:schema}).
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{figures/fig_datagen}}
-  \caption{How the dataset was generated. Steps 1--4 create a scenario and a thread; step 5 rejects threads that break a rule; steps 6--8 de-duplicate, split and write the dataset.}
+  \caption{Eight-step dataset generation, automatic rule validation, deduplication, and 80/10/10 splitting pipeline.}
   \label{fig:datagen}
-\end{figure*}
+\end{figure}
 
-\par\textbf{Same-last-line pairs.} About half of the friendly\_sarcasm and hostile\_abuse threads end in an identical line from a bank of 36 lines per script, so only the earlier messages carry the label (Figure~\ref{fig:chats}). Pair lines are split by line, so no pair line appears in two splits; the test set holds 2{,}337 such threads.
-
-\par\textbf{Record format.} Each record has 17 columns (Table~\ref{tab:schema}). The dataset is balanced: 21{,}000 threads per class, 35{,}000 per script and 26{,}250 per length.
-
-\begin{table}[h!]
+\begin{table}[H]
 \centering
-\caption{The 17 columns of a record (\texttt{jsonl}).}
+\caption{Summary of the 17 fields stored for every chat thread in the JSONL dataset.}
 \label{tab:schema}
-\footnotesize
-\begin{tabularx}{\linewidth}{@{}l X@{}}
+\small
+\begin{tabularx}{0.95\textwidth}{l X}
 \toprule
-\textbf{Column} & \textbf{Meaning} \\
+\textbf{Field Group} & \textbf{Description} \\
 \midrule
-\texttt{thread\_id}, \texttt{split} & unique id; train / val / test \\
-\texttt{length}, \texttt{n\_context} & messages in the thread (3/5/7/10); earlier messages \\
-\texttt{script} & english / hindi\_devanagari / hinglish \\
-\texttt{label}, \texttt{label\_id} & one of the five classes; 0--4 \\
-\texttt{subtype}, \texttt{topic} & scenario (31 subtypes, 40 topics) \\
-\texttt{audience} & peers / adult / minor, with gender where relevant \\
-\texttt{target\_gender}, \texttt{child\_age} & woman/man or girl/boy; age 10--15 (grooming) \\
-\texttt{pair\_id} & set for same-last-line threads \\
-\texttt{speakers} & the two speaker names, alternating \\
-\texttt{turns}, \texttt{last\_turn} & the messages in order; the final message \\
-\texttt{source} & generator tag (Qwen3-32B via Bedrock, synthetic) \\
+\texttt{thread\_id}, \texttt{split} & Unique thread ID and dataset split (\texttt{train}, \texttt{val}, or \texttt{test}) \\
+\texttt{length}, \texttt{n\_context}, \texttt{script} & Total turns (3/5/7/10), prior context turns, and script (English, Hindi, Hinglish) \\
+\texttt{label}, \texttt{label\_id} & One of the five classes and numeric ID (0--4) \\
+\texttt{subtype}, \texttt{topic}, \texttt{pair\_id} & Scenario subtype (31), topic (40), and shared-last-line pair identifier \\
+\texttt{audience}, \texttt{target\_gender}, \texttt{child\_age} & Relationship role, target gender, and minor age (10--15 for grooming) \\
+\texttt{speakers}, \texttt{turns}, \texttt{last\_turn}, \texttt{source} & Alternating speaker names, full message list, final message, and generator tag \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
 %==============================================================
-\section{Extension: Thread-Aware Models}\label{sec:models}
-Figure~\ref{fig:training} summarises the experiments. All models use the multilingual MiniLM-L12 encoder \cite{reimers2020multilingual,wang2020minilm} with a 5-way output.
+\section{Context-Aware Five-Class Models}\label{sec:models}
+%==============================================================
 
-\begin{figure*}[!t]
+We trained and compared three five-class models built on multilingual MiniLM-L12 (Figure~\ref{fig:training}):
+\begin{itemize}
+  \item \textbf{Model A (Thread Model):} Reads the final message followed by earlier turns (most recent first, separated by \texttt{[TURN]}, up to 256 tokens). Trained for 2 epochs on one NVIDIA T4 GPU in 19.8 minutes (\$0.18), then quantized to INT8.
+  \item \textbf{Model B (Last-Message-Only Control):} Uses the exact same training setup but sees only the final line.
+  \item \textbf{Model C (Frozen Encoder + GRU):} Encodes each line once and passes the vectors through a tiny 1-layer GRU \cite{cho2014gru} with just 198{,}021 trainable weights.
+\end{itemize}
+
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{figures/fig_training}}
-  \caption{Models, training and evaluation. A and B are fine-tuned end to end; C keeps the encoder frozen and trains only a GRU \cite{cho2014gru} over per-line vectors.}
+  \caption{Training and evaluation setup comparing end-to-end thread fine-tuning (A), last-message-only baseline (B), and lightweight Frozen MiniLM + GRU (C).}
   \label{fig:training}
-\end{figure*}
+\end{figure}
 
-\par\textbf{Thread model (A).} The input is the last message followed by the earlier messages, most recent first, separated by \texttt{[TURN]} (256 tokens maximum). It is fine-tuned for 2 epochs (learning rate $4\times10^{-5}$, batch 32, fp16) with the word-embedding table frozen, on one NVIDIA T4 GPU (AWS g4dn.xlarge, 19.8 minutes, \$0.18), and then exported to INT8. \textbf{Last-message-only model (B)} uses the same recipe but sees only the final message. \textbf{Frozen encoder + GRU (C)} encodes each line once (prefix \texttt{in:} or \texttt{out:}, 384 numbers), runs a one-layer GRU (hidden size 128) over the vectors, and has only 198{,}021 trainable weights.
+As Table~\ref{tab:main_results} and Figure~\ref{fig:results2} show, reading earlier turns makes a huge difference. Overall test accuracy jumps from \textbf{83.18\%} (last message only) to \textbf{97.96\%} (FP32) and \textbf{97.88\%} (INT8, 118.2\,MB, which is 75\% smaller for just 0.08 points drop). On the tricky same-last-line pairs, where a single-message model must guess blindly, our INT8 thread model gets \textbf{97.5\%} right. Per script it scores 99.3\% on English, 97.5\% on Hindi, and 96.9\% on Hinglish, taking a median of 28.3\,ms per 5-turn thread on a single CPU thread.
 
-\par\textbf{Metrics.} \emph{Accuracy} is the share of correctly classified test threads; \emph{macro-F1} is the mean of the five per-class F1 scores. All numbers below are on the 10{,}563 held-out synthetic test threads.
-
-\begin{table}[h!]
+\begin{table}[H]
 \centering
-\caption{Five-class results on the synthetic test set.}
+\caption{Five-class results on the 10{,}563 held-out synthetic test threads.}
 \label{tab:main_results}
 \small
-\begin{tabularx}{\linewidth}{@{}l r R R@{}}
+\begin{tabularx}{0.92\textwidth}{l r R R}
 \toprule
-\textbf{Model} & \textbf{Size} & \textbf{Acc.\ (\%)} & \textbf{Macro-F1} \\
+\textbf{Model Variant} & \textbf{Model Size} & \textbf{Accuracy (\%)} & \textbf{Macro-F1} \\
 \midrule
-A. Thread model (FP32)    & 470.8\,MB & 97.96 & 0.980 \\
-\textbf{A. Thread model (INT8)} & \textbf{118.2\,MB} & \textbf{97.88} & \textbf{0.979} \\
-C. Frozen encoder + GRU (INT8) & 118\,MB + 0.8\,MB & 94.91 & 0.950 \\
-B. Last message only      & 470.8\,MB & 83.18 & 0.828 \\
+A. Thread Model (FP32) & 470.8\,MB & 97.96 & 0.980 \\
+\textbf{A. Thread Model (INT8)} & \textbf{118.2\,MB} & \textbf{97.88} & \textbf{0.979} \\
+C. Frozen Encoder + GRU (INT8) & 118\,MB + 0.8\,MB & 94.91 & 0.950 \\
+B. Last Message Only (Control) & 470.8\,MB & 83.18 & 0.828 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\par\textbf{Thread awareness.} Seeing the earlier messages lifts accuracy from 83.2\% to 98.0\% (Table~\ref{tab:main_results}), and the thread model stays above 96\% at every length (Figure~\ref{fig:results2}, left), while the last-message-only model gets worse as threads grow. On the same-last-line threads, which a last-message-only model cannot separate by construction, the INT8 thread model is correct 97.5\% of the time.
-
-\par\textbf{Compact model.} INT8 quantization shrinks the thread model by 75\% for a loss of 0.08 points. The frozen-encoder variant needs only 198{,}021 trained weights and reaches 94.9\%, which makes it attractive when training budget is small. Per script the INT8 thread model scores 99.3\% on English, 97.5\% on Hindi and 96.9\% on Hinglish, and per-class recall lies between 96.3\% and 99.8\% (Figure~\ref{fig:results2}, right). With a native single-thread run, a 5-message thread takes a median of 28.3\,ms.
-
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
-  \begin{minipage}[c]{0.56\textwidth}\centering
+  \begin{minipage}[c]{0.55\textwidth}\centering
     \resizebox{\linewidth}{!}{\input{figures/fig_results2}}
   \end{minipage}\hfill
   \begin{minipage}[c]{0.42\textwidth}\centering
-    \resizebox{0.9\linewidth}{!}{\input{figures/fig_confusion}}
+    \resizebox{0.92\linewidth}{!}{\input{figures/fig_confusion}}
   \end{minipage}
-  \caption{Five-class results on the synthetic test set. Left: accuracy by thread length. Right: confusion matrix of the INT8 thread model (row-normalised, percent).}
+  \caption{Five-class test performance. Left: thread-aware models stay above 96\% accuracy even on 10-turn chats, while last-message-only drops steadily. Right: row-normalized confusion matrix of the INT8 thread model.}
   \label{fig:results2}
-\end{figure*}
+\end{figure}
 
+\clearpage
 %==============================================================
-\section{Extension: Tamper-Evident, Admin-Locked Parent Evidence Vault}\label{sec:vault}
+\section{Tamper-Evident, Admin-Locked Parent Evidence Vault (v3)}\label{sec:vault}
+%==============================================================
 
-\subsection{Threat Model and Limitations of Browser-Only Storage}
-In \textit{SurakshaNet} v1/v2, flagged incidents were stored in plaintext inside \texttt{chrome.storage.local} and exported via an unsigned \texttt{jsPDF} report. While convenient for prototyping, any browser-only storage model is fundamentally vulnerable in real child-safety deployments: a tech-savvy child, an online predator coaching a child to hide grooming chats, or user-level malware running under the child's OS account can (1)~right-click the extension icon and remove \textit{SurakshaNet}, (2)~click the popup's \textit{Clear} button or wipe \texttt{chrome.storage.local} via DevTools, (3)~read saved plaintext incidents to learn what was flagged, (4)~edit or delete records on disk, or (5)~alter an exported PDF before presenting it to school authorities or law enforcement.
+\subsection{Why Browser Storage Alone Is Not Safe for Kids}
+In earlier versions of SurakshaNet, flagged messages were saved as plain text inside Chrome's \texttt{chrome.storage.local} and exported using an unsigned PDF library (\texttt{jsPDF}). That design breaks immediately in a real home or school setting:
 
-A key security insight governs our redesign: \textbf{cryptography alone cannot prevent file deletion}. Encrypting local files with a parent's public key provides confidentiality and authenticity, yet any process holding OS write permissions can still \texttt{unlink} or truncate the ciphertext file. Conversely, OS access control alone cannot detect offline disk tampering or prove post-export PDF integrity. Our vault therefore layers \textbf{OS privilege separation}, \textbf{asymmetric sealed-box encryption}, \textbf{append-only hash chaining with hardware TPM~2.0 anchoring}, and \textbf{PKCS\#7 PDF signing}---without introducing any cloud login or sending raw chat text off-device.
+\begin{itemize}
+  \item A child (or an online predator telling the child what to click) can remove the extension in two clicks.
+  \item Anyone using Chrome can press \textbf{Clear local incidents}, open DevTools, or wipe browsing data to destroy all evidence.
+  \item Anyone with access to the child's computer can read the saved logs, edit them, or alter the exported PDF before showing it to parents, teachers, or police.
+\end{itemize}
 
-\begin{figure*}[!t]
+\begin{takeawaybox}{Core Security Insight}
+Encryption alone \textbf{cannot stop deletion}. Even if a file is strongly encrypted with a parent's key, any user who has OS write permission on that folder can simply delete the file. To stop both reading \emph{and} deletion, we must combine \textbf{OS Admin vs.\ Standard User separation}, \textbf{public-key encryption}, \textbf{append-only hash chaining with TPM~2.0 hardware anchoring}, and \textbf{digitally signed PDFs}, all while keeping every message 100\% offline.
+\end{takeawaybox}
+
+\subsection{System Architecture Across Three Security Zones}
+We built a standalone, cross-platform Go service (\texttt{vault/}, compiled to \texttt{surakshanet-vault}) and upgraded \texttt{extension\_v2/} to work seamlessly with it. Figure~\ref{fig:vault_arch} shows how the system divides trust into three clear zones.
+
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{figures/fig_vault_arch}}
-  \caption{Privilege-separated \textit{SurakshaNet} Parent Evidence Vault architecture. Zone~1 runs inside the child's standard (non-admin) OS account with Chrome locked by machine-wide policies and holding only the parent's public key ($PK_{\text{parent}}$). Zone~2 is a write-only \texttt{root}/\texttt{SYSTEM} Go daemon writing to an admin-only append-only hash chain backed by TPM~2.0 NVRAM. Zone~3 is the offline parent verification and PKCS\#7 signed PDF export workflow holding $SK_{\text{parent}}$.}
+  \caption{Three-zone architecture of the SurakshaNet Parent Evidence Vault. The child's account cannot remove Chrome policies, read saved ciphertext, or delete files owned by the privileged \texttt{root}/\texttt{SYSTEM} daemon.}
   \label{fig:vault_arch}
-\end{figure*}
+\end{figure}
 
-\subsection{Architecture Across the OS Privilege Boundary}
-Figure~\ref{fig:vault_arch} illustrates the three-zone architecture implemented in \texttt{vault/} (a single cross-platform Go binary, \texttt{surakshanet-vault}) and \texttt{extension\_v2/}.
-
-\par\textbf{Zone 1: Policy-Locked Chrome Extension (Child's Standard Account).}
-During one-time setup, the parent runs an OS-admin installer (\nolinkurl{vault/deploy/linux/install.sh} on Linux or \nolinkurl{install.ps1} on Windows) that writes machine-wide Chrome Enterprise policies \cite{chrome_enterprise_policies} into \nolinkurl{/etc/opt/chrome/policies/managed/surakshanet.json} (Linux) or \texttt{HKLM\textbackslash SOFTWARE\textbackslash\allowbreak Policies\textbackslash Google\textbackslash Chrome} (Windows):
+\textbf{Zone 1 --- Locked Chrome Extension (Child's Standard OS Account).}
+During setup, the parent runs our admin installer (\nolinkurl{vault/deploy/linux/install.sh} on Linux, or \nolinkurl{vault/deploy/windows/install.ps1} on Windows). It writes machine-wide Chrome Enterprise policies \cite{chrome_enterprise_policies} to admin-only paths (\nolinkurl{/etc/opt/chrome/policies/managed/surakshanet.json} on Linux; \texttt{HKLM\textbackslash\allowbreak SOFTWARE\textbackslash\allowbreak Policies\textbackslash\allowbreak Google\textbackslash\allowbreak Chrome} on Windows):
 \begin{itemize}
-  \item \texttt{ExtensionInstallForcelist} silently installs \textit{SurakshaNet} and removes the user's \textit{Remove} and enable/disable controls.
-  \item \texttt{DeveloperToolsAvailability = 2} and \texttt{IncognitoModeAvailability = 1} disable DevTools inspection and unmonitored Incognito bypasses.
-  \item \nolinkurl{3rdparty.extensions.<EXT_ID>} injects \texttt{lockMode: true} and \textbf{only} the 65-byte uncompressed P-256 \texttt{parentPublicKey} into read-only \nolinkurl{chrome.storage.managed} (validated by \nolinkurl{managed_schema.json}).
+  \item \texttt{ExtensionInstallForcelist} forces Chrome to keep SurakshaNet installed and removes the \textit{Remove} button and off-switch for standard users.
+  \item \texttt{DeveloperToolsAvailability = 2} and \texttt{IncognitoModeAvailability = 1} block DevTools tampering and unmonitored Incognito sessions.
+  \item \texttt{chrome.storage.managed} receives \texttt{lockMode = true} and \textbf{only the parent's public key} ($PK_{\text{parent}}$). The parent's private key never touches the browser.
 \end{itemize}
-When \texttt{lockMode} is active (\nolinkurl{extension_v2/policy.js}, \nolinkurl{store.js}, \nolinkurl{vault_client.js}), \textit{SurakshaNet} \textbf{never writes plaintext messages} to \nolinkurl{chrome.storage.local} (deduplicating via one-way SHA-256 IDs only), disables message-text console logging in \texttt{sw.js}, blocks \texttt{clearIncidents()} and \texttt{exportJSON()}, and switches the popup UI to a locked status panel (Figure~\ref{fig:popup_compare}). If the native daemon is temporarily unreachable, the extension buffers \emph{only} already-encrypted sealed boxes and flushes them on reconnect.
 
-\begin{figure*}[!t]
+Once locked mode is active (\texttt{policy.js}, \texttt{store.js}, and \texttt{vault\_client.js}), the extension never writes plain message text into browser storage, turns off console logging, blocks clearing stored incidents, and replaces the popup list with a clean locked-status screen (Figure~\ref{fig:popup_compare}). If the background vault service is momentarily offline, the extension queues \textit{only encrypted blobs} and sends them automatically once reconnected.
+
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.96\textwidth]{screenshots/popup_comparison.png}
-  \caption{Real Chrome-rendered comparison of \texttt{extension\_v2/popup.html}. Left (a): standalone mode stores plaintext in \texttt{chrome.storage.local} and exposes \textit{Clear local incidents}. Right (b): Parent-Locked Vault mode (activated via \texttt{chrome.storage.managed}) removes all plaintext and delete controls, displays the parent key fingerprint, anchor backend, and chain sequence number, and streams ciphertext to the privileged daemon.}
+  \includegraphics[width=0.92\textwidth]{screenshots/popup_comparison.png}
+  \caption{Actual Chrome screenshots of \texttt{extension\_v2/popup.html}. Left (a): standalone mode shows plain chat text and a \textit{Clear} button. Right (b): Parent-Locked Vault mode hides all text and delete controls, displaying only the lock status, parent key ID, hardware anchor type, and chain sequence number.}
   \label{fig:popup_compare}
-\end{figure*}
+\end{figure}
 
-\par\textbf{Zone 2: Write-Only Privileged Vault Daemon (\texttt{root} / \texttt{SYSTEM}).}
-Because Chrome spawns Native Messaging hosts under the child's OS account, \texttt{surakshanet-vault} \texttt{bridge} acts solely as a stateless \texttt{stdio} relay (\texttt{uint32 LE} length-prefixed JSON) forwarding requests across the OS privilege boundary to an always-on \texttt{surakshanet-vault} \texttt{daemon} running as \texttt{root} (\texttt{systemd}) or \texttt{NT AUTHORITY\textbackslash SYSTEM} (Windows Scheduled Service). Crucially, the local IPC surface (\nolinkurl{vault/internal/ipc/server.go}) is \textbf{strictly write-only}: it exposes only \texttt{APPEND\_INCIDENT}, \texttt{HEARTBEAT}, and \texttt{STATUS}. Any read, list, clear, or delete action is explicitly rejected. On Linux, the daemon extracts kernel-verified caller credentials (\texttt{UID}, \texttt{PID}) via \texttt{SO\_PEERCRED}, opens \texttt{vault.jsonl} exclusively with \texttt{O\_APPEND} + \texttt{fsync} inside a \texttt{0700 root:root} directory, and applies the kernel append-only inode attribute \texttt{FS\_APPEND\_FL} (\texttt{chattr +a}) when supported (Windows enforces equivalent \texttt{SYSTEM} and \texttt{Administrators}-only NTFS ACLs via \texttt{icacls}). A built-in heartbeat watchdog automatically appends a signed \texttt{TAMPER\_HEARTBEAT\_GAP} alert if the extension stops heartbeating (e.g., if a user-level process kills the native bridge).
-
-\subsection{Cryptographic Design and Hardware TPM~2.0 Anchoring}
-Figure~\ref{fig:sealedbox_chain} details the end-to-end cryptographic pipeline implemented with byte-for-byte parity between JavaScript Web Crypto (\nolinkurl{extension_v2/crypto_seal.js}, zero external dependencies) and Go (\nolinkurl{vault/internal/crypto/sealedbox.go}).
-
-\begin{figure*}[!t]
-  \centering
-  \resizebox{\textwidth}{!}{\input{figures/fig_sealedbox_chain}}
-  \caption{Cryptographic evidence pipeline: ephemeral ECDH P-256 + HKDF-SHA256 + AES-256-GCM sealed boxes ensure one-way write confidentiality; SHA-256 hash chaining + daemon Ed25519 signatures + TPM~2.0 NVRAM monotonic counter and cumulative digest detect any edit, mid-log deletion, or tail truncation.}
-  \label{fig:sealedbox_chain}
-\end{figure*}
-
+\textbf{Zone 2 --- Privileged Write-Only Vault Daemon (\texttt{root} / \texttt{SYSTEM}).}
+Chrome runs its Native Messaging helper under the child's normal user account, so we split the native layer into two small parts:
 \begin{enumerate}
-  \item \textbf{One-Way Sealed-Box Encryption.} For every flagged incident, the extension generates a fresh ephemeral ECDH P-256 pair $(sk_e, pk_e)$, computes $S = \text{ECDH}(sk_e, PK_{\text{parent}})$, derives a 256-bit key via HKDF-SHA256 \cite{rfc5869} with salt $\text{SHA-256}(pk_e \Vert PK_{\text{parent}})$, encrypts the canonical JSON payload using AES-256-GCM with $\text{AAD} = \text{info} \Vert pk_e \Vert PK_{\text{parent}}$, and discards $sk_e$. Even the browser extension cannot decrypt a record once sealed. The daemon also rejects any sealed envelope whose \texttt{kid} does not match the configured $PK_{\text{parent}}$.
-  \item \textbf{Hash-Chained, Ed25519-Signed Log.} Following the secure audit-log model of Schneier and Kelsey \cite{schneier1999secure}, each record $i$ carries monotonic \texttt{seq}, trusted UTC timestamp, caller \texttt{UID}/\texttt{PID}, \texttt{prev\_hash} $= H_{i-1}$, content digest $H_i = \text{SHA-256}(\text{canonical}_i)$, and signature $\sigma_i = \text{Ed25519}(SK_{\text{daemon}}, H_i)$ using an admin-only daemon key unreadable by standard users.
-  \item \textbf{Hardware TPM~2.0 Anchor} (\nolinkurl{vault/internal/tpm/anchor.go})\textbf{.} Hash chains alone cannot detect \emph{tail truncation} (deleting the last $k$ entries). On every append, the daemon extends a cumulative digest $C_i = \text{SHA-256}(C_{i-1} \Vert H_i)$ and commits it to TPM~2.0 hardware \cite{tcg2019tpm2} via \nolinkurl{github.com/google/go-tpm/tpm2} using two persistent NVRAM indices: a hardware-monotonic counter (\texttt{0x01500043}, \texttt{TPMNTCounter}, \texttt{TPM2\_NV\_Increment}) and a 40-byte digest index (\texttt{0x01500042}, \texttt{[seq $\Vert$ $C_i$]}). On machines without an accessible TPM~2.0 device, the vault transparently falls back to an admin-only file anchor (\nolinkurl{ADMIN_FILE_ANCHOR}) and explicitly labels verification output so hardware backing is never overstated.
-  \item \textbf{Passphrase-Protected Parent Key \& PKCS\#7 Signed PDFs.} The parent's private keys ($SK_{\text{parent}}$ and ECDSA P-256 PDF signing key) are stored off the child's account in \nolinkurl{parent.key.json}, encrypted via \texttt{scrypt} ($N{=}32768, r{=}8, p{=}1$) + AES-256-GCM. Running \texttt{surakshanet-vault} \texttt{export} verifies the chain and anchor, decrypts all incidents, and generates a PDF~1.4 report embedding a standard ISO~32000-1 \nolinkurl{/adbe.pkcs7.detached} CMS signature \cite{rfc5652} (\nolinkurl{vault/internal/pdf/signed_pdf.go}). Any single-byte edit or trailing byte appended after \texttt{\%\%EOF} immediately invalidates \texttt{surakshanet-vault} \texttt{verify-pdf}.
+  \item \texttt{surakshanet-vault bridge}: A thin relay that reads Chrome's length-prefixed JSON messages and forwards them across the OS boundary.
+  \item \texttt{surakshanet-vault daemon}: A background system service running as \texttt{root} (Linux \texttt{systemd}) or \texttt{NT AUTHORITY\textbackslash SYSTEM} (Windows Scheduled Service) that owns the vault folder (\texttt{0700 root:root} on Linux; locked \texttt{SYSTEM}/\texttt{Administrators}-only NTFS ACLs on Windows).
 \end{enumerate}
 
-\subsection{Zero-Login Operational User Flow}
-No cloud account or user login is required. Figure~\ref{fig:user_flow} summarises the three-phase lifecycle: (1)~the parent runs the admin installer once ($\sim$2\,minutes), moves \texttt{parent.key.json} to a USB drive or personal device, and leaves the child on a standard OS account; (2)~the child browses normally with zero login while incidents are sealed and anchored silently; (3)~when needed, the parent runs \texttt{verify} and \texttt{export} offline to obtain a cryptographically verified, digitally signed PDF report.
+The daemon's local socket is \textbf{strictly write-only}. It allows only three commands (\texttt{APPEND\_INCIDENT}, \texttt{HEARTBEAT}, and \texttt{STATUS}). There is no \texttt{READ}, \texttt{LIST}, \texttt{CLEAR}, or \texttt{DELETE} command anywhere in the IPC protocol. On Linux, the daemon also records the kernel-verified caller \texttt{UID} and \texttt{PID} (\texttt{SO\_PEERCRED}), opens \texttt{vault.jsonl} in strict \texttt{O\_APPEND} mode with \texttt{fsync}, and enables the Linux kernel append-only file flag (\texttt{FS\_APPEND\_FL} / \texttt{chattr +a}) when supported. A watchdog monitors extension heartbeats and automatically writes a signed \texttt{TAMPER\_HEARTBEAT\_GAP} alert if someone kills or disconnects the extension.
 
-\begin{figure*}[!t]
+\subsection{How the Cryptography and Hardware TPM~2.0 Anchor Work}
+Figure~\ref{fig:sealedbox_chain} shows how each abusive message is locked and chained so that any tampering (even offline on disk) is immediately exposed. Both the browser code (\texttt{extension\_v2/crypto\_seal.js}, zero external packages) and the Go verifier (\texttt{vault/internal/crypto/sealedbox.go}) follow the exact same format.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/fig_sealedbox_chain}}
+  \caption{Step-by-step cryptographic flow: one-way public-key sealing inside Chrome, hash chaining + Ed25519 signing + TPM~2.0 hardware anchoring in the privileged daemon, and PKCS\#7 PDF signing for parents.}
+  \label{fig:sealedbox_chain}
+\end{figure}
+
+\begin{enumerate}
+  \item \textbf{One-Way Sealed-Box Encryption:} For each flagged incident, Chrome generates a fresh temporary ECDH P-256 keypair, combines it with the parent's public key $PK_{\text{parent}}$, derives a 256-bit AES key using HKDF-SHA256 \cite{rfc5869}, encrypts the message with AES-256-GCM, and throws away the temporary private key. Once sealed, not even the extension can read the message back.
+  \item \textbf{Tamper-Evident Hash Chain + Daemon Signature:} Following secure audit-log design \cite{schneier1999secure}, every stored line includes an increasing sequence number (\texttt{seq}), trusted system time, caller \texttt{UID}/\texttt{PID}, the hash of the previous line (\texttt{prev\_hash}), its own SHA-256 hash ($H_i$), and an Ed25519 signature made with an admin-only daemon key. Editing or removing any middle line breaks the chain immediately.
+  \item \textbf{Hardware TPM~2.0 Anchor:} A regular hash chain cannot catch someone who deletes the very last few lines of a log file. To stop this, every append updates a running cumulative hash $C_i = \text{SHA-256}(C_{i-1} \Vert H_i)$ inside the laptop's \textbf{TPM~2.0 security chip} \cite{tcg2019tpm2} using Google's \texttt{go-tpm} library, combining a persistent hardware counter (\texttt{0x01500043}, incremented with \texttt{TPM2\_NV\_Increment}) and a 40-byte digest slot (\texttt{0x01500042}). On machines without a TPM chip (such as virtual machines), the daemon falls back to an admin-only anchor file and clearly reports \texttt{ADMIN\_FILE\_ANCHOR} instead of \texttt{TPM2\_HARDWARE}.
+  \item \textbf{Parent Private Key \& Signed PDF Export:} The parent's private keys are saved in \texttt{parent.key.json}, protected by a passphrase via \texttt{scrypt} + AES-256-GCM, and kept off the child's account (for example, on a USB stick). When the parent runs \texttt{surakshanet-vault export}, the tool checks the entire chain, decrypts all incidents, and builds a PDF~1.4 report signed with a standard PKCS\#7 / CMS detached signature \cite{rfc5652}. Changing even \textbf{one single byte} of the PDF makes \texttt{verify-pdf} fail right away.
+\end{enumerate}
+
+\subsection{Simple Zero-Login User Flow}
+Families do not need to create an online account or remember any website login. Figure~\ref{fig:user_flow} shows the three-step day-to-day flow.
+
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{\input{figures/fig_user_flow}}
-  \caption{Zero-login three-phase operational flow separating OS Administrator setup and offline private-key auditing from the child's daily Standard User session.}
+  \caption{Zero-login user flow: a one-time two-minute setup by the parent, silent daily protection for the child, and offline verification and signed PDF export whenever the parent reviews logs.}
   \label{fig:user_flow}
-\end{figure*}
+\end{figure}
 
-\subsection{Security Evaluation, Live Tamper Proofs, and Latency}
-Table~\ref{tab:threat_matrix} contrasts the attack surface before and after introducing the vault. We validated all guarantees using Go race-detector unit tests (\texttt{go test -race ./...} across \texttt{crypto}, \texttt{chain}, \texttt{ipc}, and \texttt{pdf}) and a cross-language end-to-end suite (\texttt{vault/e2e\_test.mjs}) sealing English, Devanagari Hindi, and Hinglish messages in JavaScript Web Crypto, streaming them through \texttt{surakshanet-vault bridge} to \texttt{daemon}, verifying exact UTF-8 decryption parity, exporting a signed PDF, and executing live attacks.
+\subsection{Security Analysis, Live Attack Proofs, and Speed Benchmarks}
+Table~\ref{tab:threat_matrix} compares how the system behaves before and after adding the Parent Evidence Vault.
 
-\begin{table*}[t]
+\begin{table}[H]
 \centering
-\caption{Security comparison before (\texttt{extension\_v2} local storage) and after adding the Admin-Locked Parent Evidence Vault.}
+\caption{Attack-by-attack security comparison: browser local storage vs.\ our Parent-Locked Evidence Vault.}
 \label{tab:threat_matrix}
-\small
-\begin{tabularx}{\textwidth}{@{}l X X X@{}}
+\footnotesize
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.4cm} >{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{3.1cm} >{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Threat / Attack Vector} & \textbf{Before (\texttt{chrome.storage.local})} & \textbf{After (Parent-Locked Vault)} & \textbf{Enforcement Mechanism} \\
+\textbf{Attack Attempt} & \textbf{Before (\texttt{localStorage})} & \textbf{After (Parent Vault)} & \textbf{How It Is Stopped} \\
 \midrule
-Remove or disable extension & One click in \nolinkurl{chrome://extensions} & \textbf{Blocked} for Standard OS user & Chrome \texttt{ExtensionInstallForcelist} in \texttt{HKLM} / \nolinkurl{/etc/opt/chrome/policies/managed} \\
-Click \textit{Clear} / wipe storage & All evidence permanently lost & \textbf{Blocked / No plaintext in browser} & Managed \texttt{lockMode} hides Clear UI; \texttt{store.js} writes ciphertext to daemon only \\
-Read saved chats on disk & Plaintext JSON readable by user & \textbf{Unreadable} (OS + crypto) & \texttt{0700 root}/NTFS ACL + ECDH-P256 sealed box ($SK_{\text{parent}}$ offline) \\
-Send wipe RPC over IPC & N/A & \textbf{Rejected} (Figure~\ref{fig:tamper_term}) & Strictly write-only IPC (\texttt{APPEND}, \texttt{HEARTBEAT}, \texttt{STATUS} only) \\
-Edit or delete middle record & Undetectable & \textbf{Immediately caught} & Broken SHA-256 \texttt{prev\_hash}, sequence gap, invalid Ed25519 sig \\
-Truncate tail of \texttt{vault.jsonl} & Undetectable & \textbf{Immediately caught} (Figure~\ref{fig:tamper_term}) & Cumulative digest $C_n$ \& count mismatch against TPM~2.0 / Admin Anchor \\
-Kill bridge / detach extension & Silent monitoring failure & \textbf{Logged as tamper alert} & Daemon heartbeat watchdog records \texttt{TAMPER\_HEARTBEAT\_GAP} \\
-Modify 1 byte of exported PDF & Unsigned \texttt{jsPDF}, trivial to fake & \textbf{Immediately caught} (Figure~\ref{fig:tamper_term}) & ISO 32000-1 \texttt{/adbe.pkcs7.detached} signature + full-file \texttt{/ByteRange} \\
+Remove or turn off extension & Easy two-click removal & \textbf{Blocked} for child user & Chrome \texttt{\scriptsize ExtensionInstallForcelist} set by OS Admin \\
+Click \textit{Clear} or wipe Chrome & All evidence deleted & \textbf{Blocked / No plain logs} & Managed \texttt{lockMode} hides Clear UI; daemon stores ciphertext \\
+Read saved chats from disk & Plaintext JSON readable & \textbf{Unreadable} & \texttt{0700 root}/NTFS ACL + sealed box ($SK_{\text{parent}}$ offline) \\
+Send delete command over IPC & Not applicable & \textbf{Rejected} (Fig.~\ref{fig:tamper_term}) & Strictly write-only socket (no delete/read commands) \\
+Edit or delete a middle record & Goes unnoticed & \textbf{Caught immediately} & Broken \texttt{prev\_hash}, sequence gap, invalid Ed25519 signature \\
+Delete the last lines of log & Goes unnoticed & \textbf{Caught immediately} (Fig.~\ref{fig:tamper_term}) & Cumulative digest \& count mismatch with TPM / Admin Anchor \\
+Kill bridge or stop extension & Silent failure & \textbf{Logged as tamper alert} & Watchdog records \texttt{\scriptsize TAMPER\_HEARTBEAT\_GAP} \\
+Edit 1 byte in exported PDF & Unsigned, easy to fake & \textbf{Caught immediately} (Fig.~\ref{fig:tamper_term}) & PKCS\#7 detached signature + full-file \texttt{/ByteRange} check \\
 \bottomrule
 \end{tabularx}
-\end{table*}
+\end{table}
 
-Figures~\ref{fig:e2e_term}, \ref{fig:tamper_term}, and \ref{fig:signed_pdf_shot} show real captured outputs from our end-to-end verification, simulated attack suite, and generated PKCS\#7 signed PDF.
+We verified every layer with Go unit tests (\texttt{go test -v -race ./...}) and an automated JavaScript-to-Go end-to-end test (\texttt{vault/e2e\_test.mjs}) covering English, Devanagari Hindi, and Hinglish chats. Figures~\ref{fig:e2e_term}, \ref{fig:tamper_term}, and \ref{fig:signed_pdf_shot} show real screenshots captured directly from our running binary.
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{screenshots/terminal_e2e_verify.png}
-  \caption{Live CLI verification (\texttt{verify}), parent decryption + PKCS\#7 PDF export (\texttt{export}), and cryptographic PDF signature check (\texttt{verify-pdf}) captured directly from \nolinkurl{surakshanet-vault}.}
+  \caption{Real CLI output showing intact chain verification (\texttt{verify}), parent decryption and PDF export (\texttt{export}), and cryptographic PDF signature verification (\texttt{verify-pdf}).}
   \label{fig:e2e_term}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[!t]
+\begin{figure}[H]
   \centering
   \includegraphics[width=0.92\textwidth]{screenshots/terminal_tamper_attacks.png}
-  \caption{Live attack proofs: (1)~IPC \texttt{DELETE\_ALL} rejected as forbidden on the write-only socket, (2)~1-byte PDF edit caught via PKCS\#7 digest mismatch, and (3)~tail truncation of \texttt{vault.jsonl} caught via anchor count and cumulative digest mismatch.}
+  \caption{Real live attack tests caught by SurakshaNet: (1)~IPC \texttt{DELETE\_ALL} blocked, (2)~1-byte PDF edit caught via PKCS\#7 digest mismatch, and (3)~log tail truncation caught via anchor mismatch.}
   \label{fig:tamper_term}
-\end{figure*}
+\end{figure}
 
-\begin{figure}[!t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\columnwidth]{screenshots/signed_pdf_preview.png}
-  \caption{Rendered page of a real PKCS\#7 digitally signed PDF exported by \texttt{surakshanet-vault} \texttt{export}, embedding chain integrity metadata, per-incident SHA-256 hashes, and decrypted multilingual evidence.}
+  \includegraphics[width=0.82\textwidth]{screenshots/signed_pdf_preview.png}
+  \caption{Rendered page of an actual PKCS\#7 digitally signed PDF report generated by \texttt{surakshanet-vault export}, containing chain verification hashes and decrypted multilingual incidents.}
   \label{fig:signed_pdf_shot}
 \end{figure}
 
-\begin{figure}[!t]
+\textbf{Measured Speed Overhead.}
+We benchmarked every operation using \texttt{vault/bench\_vault.mjs} (full raw data saved in \texttt{vault/bench\_report.json}). As Figure~\ref{fig:vault_bench} shows, encrypting an incident inside Chrome takes just \textbf{0.70\,ms} (median), and saving it through the Native Messaging bridge to the privileged daemon takes \textbf{2.90\,ms} (median). Total capture overhead is only \textbf{3.60\,ms}, which is tiny compared to the 28\,ms AI inference time and runs only when abuse is detected. Checking a 55-record vault takes \textbf{5.59\,ms}, verifying a signed PDF takes \textbf{3.31\,ms}, and decrypting + signing a full parent export takes \textbf{87.51\,ms} (intentionally dominated by \texttt{scrypt} brute-force protection). The Go binary also cross-compiles cleanly for Linux (\texttt{amd64}), Windows (\texttt{amd64}), and macOS (\texttt{arm64}).
+
+\begin{figure}[H]
   \centering
-  \resizebox{\columnwidth}{!}{\input{figures/fig_vault_bench}}
-  \caption{Measured latency of vault operations on Linux \texttt{x86\_64} (\nolinkurl{vault/bench_report.json}, $n{=}53$ appends and $n{=}10$ full-vault runs on 55 records) versus the 28\,ms ONNX inference baseline.}
+  \input{figures/fig_vault_bench}
+  \caption{Real measured latency of all SurakshaNet Vault operations on Linux \texttt{x86\_64} ($n{=}53$ sealed appends; $n{=}10$ full-vault verify/export runs on 55 records) compared against the 28\,ms ONNX inference time.}
   \label{fig:vault_bench}
 \end{figure}
 
-\par\textbf{Performance Overhead.} Figure~\ref{fig:vault_bench} reports real microbenchmark measurements (\nolinkurl{vault/bench_vault.mjs}, saved in \nolinkurl{vault/bench_report.json}). Web Crypto sealed-box encryption takes a median of \textbf{0.70\,ms} (p95 1.15\,ms), and the full Native Messaging bridge + daemon \texttt{O\_APPEND} + \texttt{fsync} + Ed25519 + anchor round-trip takes \textbf{2.90\,ms} (p95 3.65\,ms). Thus, end-to-end tamper-evident capture adds only \textbf{3.60\,ms} on top of the 28\,ms ONNX inference latency, and runs solely when a message is flagged. Offline verification of 55 chained records takes \textbf{5.59\,ms}, PDF signature verification takes \textbf{3.31\,ms}, and full parent export (intentionally dominated by \texttt{scrypt} passphrase key derivation) completes in \textbf{87.51\,ms}. The Go binary cross-compiles cleanly to Linux (\texttt{amd64}), Windows (\texttt{amd64}), and macOS (\texttt{arm64}).
-
 %==============================================================
-\section{Final Deployed Configuration}
-Based on the complete evaluation, the current \textit{SurakshaNet} deployment combines the \textbf{INT8 MiniLM encoder with the gated conversational window} and the \textbf{Parent-Locked Tamper-Evident Vault}, achieving:
-\begin{itemize}
-    \item \textbf{84.2\%} accuracy on single-message classification,
-    \item \textbf{76.1\%} recall on split-narrative conversations,
-    \item \textbf{82.9\%} accuracy when abusive content appears after small talk,
-    \item \textbf{83.0\%} accuracy on benign conversations, and
-    \item \textbf{3.60\,ms} median end-to-end vault sealing and privileged append overhead with 100\% detection of IPC wipe attempts, mid-log edits/deletions, tail truncation, and 1-byte PDF tampering.
-\end{itemize}
-The deployed extension does not send user conversations to Amazon Bedrock or any other cloud-based LLM; the Bedrock experiments were conducted solely for benchmarking, and both inference and evidence preservation remain completely local, preserving the privacy-first design. The five-class thread models are research artifacts; the extension itself still uses the binary model.
+\section{Final Deployed Setup, Honest Limits, and Future Work}
+%==============================================================
 
-\subsection*{Limitations and next steps}
-The five-class data are generated by an LLM and checked by automatic rules; no human annotators reviewed them, so the scores in Section~\ref{sec:models} describe the synthetic distribution. A first zero-shot check of the synthetic-trained models on real conversation data (CAD, ConvAbuse, PRISM) gave AUROC between 0.47 and 0.74, so we see the dataset today as a controlled benchmark and as training material to be mixed with real data. Our Hinglish text is machine-converted and less code-mixed than human Hinglish, the cloud-LLM comparison uses small subsets, and latency of the five-class models was measured natively rather than in the browser. For the evidence vault (Section~\ref{sec:vault}), three honest trust boundaries remain: (1)~no purely local vault can survive a full physical hard-drive wipe or a compromised OS Administrator/\texttt{root} account—defending against full disk destruction requires an optional zero-knowledge remote mirror of the already-encrypted sealed boxes (e.g., S3 Object Lock or a companion parent app); (2)~on non-domain-joined consumer Windows and macOS devices, Chrome restricts \texttt{ExtensionInstallForcelist} to Chrome Web Store extensions (requiring an unlisted store listing or Chrome Browser Cloud Management); and (3)~local capture proves post-capture integrity rather than WhatsApp server provenance (which would require network-level TLS attestation). Next steps are adding real threaded data with held-out evaluation, integrating the five-class INT8 thread model into the extension, testing hardware TPM~2.0 NV anchoring across consumer laptops, and adding optional zero-knowledge encrypted sync plus RFC~3161/OpenTimestamps anchoring.
+\subsection{Current Shipped Setup}
+Right now, our complete deployable system pairs the \textbf{INT8 Hinglish-aware MiniLM model + gated chat window} with the \textbf{Admin-Locked Parent Evidence Vault}. Together, they deliver:
+\begin{itemize}
+  \item \textbf{84.2\%} accuracy on single Hinglish messages and \textbf{76.1\%} recall on split-narrative abuse,
+  \item \textbf{82.9\%} accuracy when abuse follows small talk and \textbf{83.0\%} on harmless chats,
+  \item \textbf{28\,ms} median local AI inference + only \textbf{3.60\,ms} median tamper-proof vault capture overhead,
+  \item \textbf{100\%} offline privacy, because raw chat messages never leave the user's machine.
+\end{itemize}
+
+\subsection{Honest Limitations and Next Steps}
+Being clear about real-world limits is essential in any security and AI project:
+
+\begin{enumerate}
+  \item \textbf{Synthetic Five-Class Data:} Our 105{,}000-thread dataset was generated by an LLM and checked by automatic rules without human annotators. Zero-shot tests on real datasets (CAD \cite{vidgen2021cad}, ConvAbuse \cite{curry2021convabuse}, PRISM \cite{prism2025}) gave AUROC scores of 0.47 to 0.74, so the dataset should be combined with human-labelled real chats before deploying the five-class model.
+  \item \textbf{Physical Disk Wipe / Full OS Admin Compromise:} No purely local vault can survive a full hard-drive format or an attacker who already holds the OS Administrator password. Preventing full disk loss requires an optional zero-knowledge backup that uploads only the already-encrypted sealed boxes to write-once cloud storage or a parent's phone.
+  \item \textbf{Chrome Web Store Requirement on Consumer Windows/macOS:} On non-domain Windows and macOS PCs, Chrome only allows \texttt{ExtensionInstallForcelist} for extensions listed on the Chrome Web Store (an unlisted listing solves this cleanly; Linux allows local update files directly).
+  \item \textbf{Post-Capture Integrity vs.\ Network Provenance:} Our vault proves that evidence was never altered or deleted \textit{after} SurakshaNet captured it. Proving that WhatsApp's servers originally sent the text would require network-level TLS attestation in future work, alongside RFC~3161 or OpenTimestamps time anchoring.
+\end{enumerate}
 
 %==============================================================
 \section{Conclusion}
-\textit{SurakshaNet} demonstrates that proactive, multilingual moderation and forensic-grade child safety are technically viable entirely on the edge. By combining low-latency local INT8 inference, gated conversational-context handling, and an OS-admin-locked, cryptographically verifiable \textit{Parent Evidence Vault} (Web Crypto sealed boxes, a write-only \texttt{root}/\texttt{SYSTEM} append-only daemon, TPM~2.0 anchoring, and PKCS\#7 signed PDFs), the system closes the critical tampering gap of browser-only extensions while adding only 3.6\,ms of capture latency and zero cloud plaintext exposure. Alongside the 105{,}000-thread five-class benchmark (97.9\% synthetic test accuracy at 118\,MB INT8), this provides an end-to-end foundation for trustworthy, privacy-first protection of children and women online.
+%==============================================================
 
-\bibliographystyle{ACM-Reference-Format}
+SurakshaNet shows that practical, privacy-first online safety for children and women can run completely on the user's own device. Starting from a compact 118\,MB INT8 multilingual classifier with a smart conversational window, we expanded the project with a 105{,}000-thread five-class benchmark (97.9\% test accuracy) and solved the crucial evidence-tampering gap with an OS-admin-locked \textbf{Parent Evidence Vault}. By combining Chrome Enterprise locks, one-way public-key sealed boxes, a write-only \texttt{root}/\texttt{SYSTEM} hash-chained daemon, TPM~2.0 hardware anchoring, and PKCS\#7 signed PDFs, SurakshaNet protects abuse evidence against deletion and forgery with just 3.6\,ms of extra overhead and zero cloud plaintext exposure.
+
+%==============================================================
+% REFERENCES
+%==============================================================
+\bibliographystyle{plain}
 \bibliography{references}
 
 \end{document}

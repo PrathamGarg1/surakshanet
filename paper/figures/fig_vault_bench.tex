@@ -2,50 +2,51 @@
 \begin{tikzpicture}
 \begin{axis}[
   xbar,
-  width=0.96\columnwidth,
-  height=4.8cm,
-  bar width=6pt,
+  width=0.66\textwidth,
+  height=6.2cm,
+  bar width=7.5pt,
   enlarge y limits=0.16,
-  xlabel={Latency (ms, log scale — lower is better)},
-  xlabel style={font=\fontsize{7}{8}\selectfont},
+  xlabel={Time Taken (milliseconds, log scale --- shorter bar is faster)},
+  xlabel style={font=\small},
   xmode=log,
   log origin=infty,
-  xmin=0.4, xmax=380,
+  xmin=0.4, xmax=350,
   xtick={0.5, 1, 3, 10, 30, 100},
   xticklabels={0.5, 1, 3, 10, 30, 100},
-  tick label style={font=\fontsize{6.6}{7.6}\selectfont},
+  tick label style={font=\footnotesize},
   symbolic y coords={
-    {Parent Export + PDF (55 rec)},
-    {ONNX INT8 Inference (ref)},
+    {Parent Export + Signed PDF (55 rec)},
+    {ONNX Local AI Inference (baseline)},
     {Chain + Anchor Verify (55 rec)},
-    {PKCS\#7 PDF Verify},
-    {Native Bridge + Daemon Append},
-    {JS Web Crypto Sealed Box}
+    {Signed PDF Check (verify-pdf)},
+    {Native Bridge + Daemon Save},
+    {Browser Sealed-Box Encryption}
   },
   ytick=data,
   point meta=rawx,
   nodes near coords={\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\,ms},
-  nodes near coords style={font=\fontsize{5.9}{6.8}\selectfont, anchor=west},
-  legend style={at={(0.98,0.96)}, anchor=north east, font=\fontsize{6.2}{7.2}\selectfont,
-                draw=black!35, fill=white, inner sep=2.5pt},
+  nodes near coords style={font=\scriptsize, anchor=west},
+  legend columns=2,
+  legend style={at={(0.5,1.03)}, anchor=south, font=\footnotesize,
+                draw=black!25, fill=white, inner sep=3.5pt, /tikz/every even column/.append style={column sep=8pt}},
   grid=major,
   major grid style={gray!20},
 ]
   \addplot[fill=blue!55, draw=blue!75!black] coordinates {
-    (0.70,{JS Web Crypto Sealed Box})
-    (2.90,{Native Bridge + Daemon Append})
-    (3.31,{PKCS\#7 PDF Verify})
+    (0.70,{Browser Sealed-Box Encryption})
+    (2.90,{Native Bridge + Daemon Save})
+    (3.31,{Signed PDF Check (verify-pdf)})
     (5.59,{Chain + Anchor Verify (55 rec)})
-    (28.00,{ONNX INT8 Inference (ref)})
-    (87.51,{Parent Export + PDF (55 rec)})
+    (28.00,{ONNX Local AI Inference (baseline)})
+    (87.51,{Parent Export + Signed PDF (55 rec)})
   };
   \addplot[fill=orange!65, draw=orange!80!black] coordinates {
-    (1.15,{JS Web Crypto Sealed Box})
-    (3.65,{Native Bridge + Daemon Append})
-    (3.76,{PKCS\#7 PDF Verify})
+    (1.15,{Browser Sealed-Box Encryption})
+    (3.65,{Native Bridge + Daemon Save})
+    (3.76,{Signed PDF Check (verify-pdf)})
     (6.31,{Chain + Anchor Verify (55 rec)})
-    (89.75,{Parent Export + PDF (55 rec)})
+    (89.75,{Parent Export + Signed PDF (55 rec)})
   };
-  \legend{Median (ms), p95 (ms)}
+  \legend{Median (ms), 95th Percentile (ms)}
 \end{axis}
 \end{tikzpicture}
