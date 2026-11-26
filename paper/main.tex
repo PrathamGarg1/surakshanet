@@ -59,7 +59,7 @@
 \email{geeta@iitrpr.ac.in}
 
 \begin{abstract}
-Traditional abusive language moderation often relies on cloud-based APIs, raising privacy concerns and introducing network latency. We present \textit{SurakshaNet}, an edge-deployed system for real-time multilingual toxicity detection on web messaging platforms, with a prototype implemented for WhatsApp Web. By combining INT8 static quantization with ONNX Runtime Web and WebAssembly (WASM), we reduce a 471 MB transformer model to 113 MB (about 76\%) while incurring less than 0.11\% accuracy loss. Implemented natively as a Chrome Extension using a Manifest V3 Service Worker, \textit{SurakshaNet} achieves a median inference latency of 28 ms and ensures that raw user data never leaves the device. We further extend the system with Hinglish training data, a gated conversational-context window, and child-safety features (parental control, harmful-message hiding, and screenshot evidence collection), and show that the local model matches or outperforms evaluated cloud LLMs on several conversational slices. Finally, we add a 105,000-thread, five-class benchmark in English, Hindi and Hinglish, on which thread-aware models reach 97.9\% test accuracy with a 118\,MB INT8 model.
+Traditional abusive language moderation often relies on cloud-based APIs, raising privacy concerns and introducing network latency. We present \textit{SurakshaNet}, an edge-deployed system for real-time multilingual toxicity detection on web messaging platforms, with a prototype implemented for WhatsApp Web. By combining INT8 static quantization with ONNX Runtime Web and WebAssembly (WASM), we reduce a 471 MB transformer model to 113 MB (about 76\%) while incurring less than 0.11\% accuracy loss. Implemented natively as a Chrome Extension using a Manifest V3 Service Worker, \textit{SurakshaNet} achieves a median inference latency of 28 ms and ensures that raw user data never leaves the device. We further extend the system with Hinglish training data, a gated conversational-context window, and child-safety features (parental control, harmful-message hiding, and screenshot evidence collection), and show that the local model matches or outperforms evaluated cloud LLMs on several conversational slices. We add a 105,000-thread, five-class benchmark in English, Hindi and Hinglish, on which thread-aware models reach 97.9\% test accuracy with a 118\,MB INT8 model. Finally, to prevent children or user-level attackers from disabling the extension or deleting captured abuse records from browser storage, we design and implement a privilege-separated, tamper-evident \textit{Parent Evidence Vault} combining OS-admin Chrome Enterprise policy locks, Web Crypto public-key sealed-box encryption (ECDH P-256 + HKDF-SHA256 + AES-256-GCM), a write-only \texttt{root}/\texttt{SYSTEM} append-only Go daemon with Ed25519-signed SHA-256 hash chaining and TPM~2.0 NVRAM anchoring, and PKCS\#7 digitally signed PDF evidence exports—adding only 3.6\,ms median end-to-end capture overhead while preserving 100\% offline privacy.
 \end{abstract}
 
 \begin{CCSXML}
@@ -88,6 +88,7 @@ Malicious actors increasingly exploit social media platforms to spread harmful c
     \item A multilingual abuse detection pipeline with a size-optimized, edge-deployable model and forensic evidence support.
     \item A Hinglish dataset derived from MACD and a conversation-aware (gated window) inference strategy, benchmarked against cloud-based LLMs.
     \item A five-class, context-thread dataset (benign, friendly sarcasm, hostile abuse, sexual harassment, predatory grooming) and thread-aware models trained on it.
+    \item A privilege-separated, tamper-evident \textit{Parent Evidence Vault} (Section~\ref{sec:vault}) combining Chrome Enterprise policy locks, parent public-key sealed-box encryption, a write-only privileged OS daemon with kernel append-only storage, TPM~2.0 hardware anchoring, and PKCS\#7 digitally signed PDF export.
 \end{itemize}
 
 %==============================================================
@@ -334,22 +335,143 @@ B. Last message only      & 470.8\,MB & 83.18 & 0.828 \\
 \end{figure*}
 
 %==============================================================
+\section{Extension: Tamper-Evident, Admin-Locked Parent Evidence Vault}\label{sec:vault}
+
+\subsection{Threat Model and Limitations of Browser-Only Storage}
+In \textit{SurakshaNet} v1/v2, flagged incidents were stored in plaintext inside \texttt{chrome.storage.local} and exported via an unsigned \texttt{jsPDF} report. While convenient for prototyping, any browser-only storage model is fundamentally vulnerable in real child-safety deployments: a tech-savvy child, an online predator coaching a child to hide grooming chats, or user-level malware running under the child's OS account can (1)~right-click the extension icon and remove \textit{SurakshaNet}, (2)~click the popup's \textit{Clear} button or wipe \texttt{chrome.storage.local} via DevTools, (3)~read saved plaintext incidents to learn what was flagged, (4)~edit or delete records on disk, or (5)~alter an exported PDF before presenting it to school authorities or law enforcement.
+
+A key security insight governs our redesign: \textbf{cryptography alone cannot prevent file deletion}. Encrypting local files with a parent's public key provides confidentiality and authenticity, yet any process holding OS write permissions can still \texttt{unlink} or truncate the ciphertext file. Conversely, OS access control alone cannot detect offline disk tampering or prove post-export PDF integrity. Our vault therefore layers \textbf{OS privilege separation}, \textbf{asymmetric sealed-box encryption}, \textbf{append-only hash chaining with hardware TPM~2.0 anchoring}, and \textbf{PKCS\#7 PDF signing}---without introducing any cloud login or sending raw chat text off-device.
+
+\begin{figure*}[!t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/fig_vault_arch}}
+  \caption{Privilege-separated \textit{SurakshaNet} Parent Evidence Vault architecture. Zone~1 runs inside the child's standard (non-admin) OS account with Chrome locked by machine-wide policies and holding only the parent's public key ($PK_{\text{parent}}$). Zone~2 is a write-only \texttt{root}/\texttt{SYSTEM} Go daemon writing to an admin-only append-only hash chain backed by TPM~2.0 NVRAM. Zone~3 is the offline parent verification and PKCS\#7 signed PDF export workflow holding $SK_{\text{parent}}$.}
+  \label{fig:vault_arch}
+\end{figure*}
+
+\subsection{Architecture Across the OS Privilege Boundary}
+Figure~\ref{fig:vault_arch} illustrates the three-zone architecture implemented in \texttt{vault/} (a single cross-platform Go binary, \texttt{surakshanet-vault}) and \texttt{extension\_v2/}.
+
+\par\textbf{Zone 1: Policy-Locked Chrome Extension (Child's Standard Account).}
+During one-time setup, the parent runs an OS-admin installer (\nolinkurl{vault/deploy/linux/install.sh} on Linux or \nolinkurl{install.ps1} on Windows) that writes machine-wide Chrome Enterprise policies \cite{chrome_enterprise_policies} into \nolinkurl{/etc/opt/chrome/policies/managed/surakshanet.json} (Linux) or \texttt{HKLM\textbackslash SOFTWARE\textbackslash\allowbreak Policies\textbackslash Google\textbackslash Chrome} (Windows):
+\begin{itemize}
+  \item \texttt{ExtensionInstallForcelist} silently installs \textit{SurakshaNet} and removes the user's \textit{Remove} and enable/disable controls.
+  \item \texttt{DeveloperToolsAvailability = 2} and \texttt{IncognitoModeAvailability = 1} disable DevTools inspection and unmonitored Incognito bypasses.
+  \item \nolinkurl{3rdparty.extensions.<EXT_ID>} injects \texttt{lockMode: true} and \textbf{only} the 65-byte uncompressed P-256 \texttt{parentPublicKey} into read-only \nolinkurl{chrome.storage.managed} (validated by \nolinkurl{managed_schema.json}).
+\end{itemize}
+When \texttt{lockMode} is active (\nolinkurl{extension_v2/policy.js}, \nolinkurl{store.js}, \nolinkurl{vault_client.js}), \textit{SurakshaNet} \textbf{never writes plaintext messages} to \nolinkurl{chrome.storage.local} (deduplicating via one-way SHA-256 IDs only), disables message-text console logging in \texttt{sw.js}, blocks \texttt{clearIncidents()} and \texttt{exportJSON()}, and switches the popup UI to a locked status panel (Figure~\ref{fig:popup_compare}). If the native daemon is temporarily unreachable, the extension buffers \emph{only} already-encrypted sealed boxes and flushes them on reconnect.
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.96\textwidth]{screenshots/popup_comparison.png}
+  \caption{Real Chrome-rendered comparison of \texttt{extension\_v2/popup.html}. Left (a): standalone mode stores plaintext in \texttt{chrome.storage.local} and exposes \textit{Clear local incidents}. Right (b): Parent-Locked Vault mode (activated via \texttt{chrome.storage.managed}) removes all plaintext and delete controls, displays the parent key fingerprint, anchor backend, and chain sequence number, and streams ciphertext to the privileged daemon.}
+  \label{fig:popup_compare}
+\end{figure*}
+
+\par\textbf{Zone 2: Write-Only Privileged Vault Daemon (\texttt{root} / \texttt{SYSTEM}).}
+Because Chrome spawns Native Messaging hosts under the child's OS account, \texttt{surakshanet-vault} \texttt{bridge} acts solely as a stateless \texttt{stdio} relay (\texttt{uint32 LE} length-prefixed JSON) forwarding requests across the OS privilege boundary to an always-on \texttt{surakshanet-vault} \texttt{daemon} running as \texttt{root} (\texttt{systemd}) or \texttt{NT AUTHORITY\textbackslash SYSTEM} (Windows Scheduled Service). Crucially, the local IPC surface (\nolinkurl{vault/internal/ipc/server.go}) is \textbf{strictly write-only}: it exposes only \texttt{APPEND\_INCIDENT}, \texttt{HEARTBEAT}, and \texttt{STATUS}. Any read, list, clear, or delete action is explicitly rejected. On Linux, the daemon extracts kernel-verified caller credentials (\texttt{UID}, \texttt{PID}) via \texttt{SO\_PEERCRED}, opens \texttt{vault.jsonl} exclusively with \texttt{O\_APPEND} + \texttt{fsync} inside a \texttt{0700 root:root} directory, and applies the kernel append-only inode attribute \texttt{FS\_APPEND\_FL} (\texttt{chattr +a}) when supported (Windows enforces equivalent \texttt{SYSTEM} and \texttt{Administrators}-only NTFS ACLs via \texttt{icacls}). A built-in heartbeat watchdog automatically appends a signed \texttt{TAMPER\_HEARTBEAT\_GAP} alert if the extension stops heartbeating (e.g., if a user-level process kills the native bridge).
+
+\subsection{Cryptographic Design and Hardware TPM~2.0 Anchoring}
+Figure~\ref{fig:sealedbox_chain} details the end-to-end cryptographic pipeline implemented with byte-for-byte parity between JavaScript Web Crypto (\nolinkurl{extension_v2/crypto_seal.js}, zero external dependencies) and Go (\nolinkurl{vault/internal/crypto/sealedbox.go}).
+
+\begin{figure*}[!t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/fig_sealedbox_chain}}
+  \caption{Cryptographic evidence pipeline: ephemeral ECDH P-256 + HKDF-SHA256 + AES-256-GCM sealed boxes ensure one-way write confidentiality; SHA-256 hash chaining + daemon Ed25519 signatures + TPM~2.0 NVRAM monotonic counter and cumulative digest detect any edit, mid-log deletion, or tail truncation.}
+  \label{fig:sealedbox_chain}
+\end{figure*}
+
+\begin{enumerate}
+  \item \textbf{One-Way Sealed-Box Encryption.} For every flagged incident, the extension generates a fresh ephemeral ECDH P-256 pair $(sk_e, pk_e)$, computes $S = \text{ECDH}(sk_e, PK_{\text{parent}})$, derives a 256-bit key via HKDF-SHA256 \cite{rfc5869} with salt $\text{SHA-256}(pk_e \Vert PK_{\text{parent}})$, encrypts the canonical JSON payload using AES-256-GCM with $\text{AAD} = \text{info} \Vert pk_e \Vert PK_{\text{parent}}$, and discards $sk_e$. Even the browser extension cannot decrypt a record once sealed. The daemon also rejects any sealed envelope whose \texttt{kid} does not match the configured $PK_{\text{parent}}$.
+  \item \textbf{Hash-Chained, Ed25519-Signed Log.} Following the secure audit-log model of Schneier and Kelsey \cite{schneier1999secure}, each record $i$ carries monotonic \texttt{seq}, trusted UTC timestamp, caller \texttt{UID}/\texttt{PID}, \texttt{prev\_hash} $= H_{i-1}$, content digest $H_i = \text{SHA-256}(\text{canonical}_i)$, and signature $\sigma_i = \text{Ed25519}(SK_{\text{daemon}}, H_i)$ using an admin-only daemon key unreadable by standard users.
+  \item \textbf{Hardware TPM~2.0 Anchor} (\nolinkurl{vault/internal/tpm/anchor.go})\textbf{.} Hash chains alone cannot detect \emph{tail truncation} (deleting the last $k$ entries). On every append, the daemon extends a cumulative digest $C_i = \text{SHA-256}(C_{i-1} \Vert H_i)$ and commits it to TPM~2.0 hardware \cite{tcg2019tpm2} via \nolinkurl{github.com/google/go-tpm/tpm2} using two persistent NVRAM indices: a hardware-monotonic counter (\texttt{0x01500043}, \texttt{TPMNTCounter}, \texttt{TPM2\_NV\_Increment}) and a 40-byte digest index (\texttt{0x01500042}, \texttt{[seq $\Vert$ $C_i$]}). On machines without an accessible TPM~2.0 device, the vault transparently falls back to an admin-only file anchor (\nolinkurl{ADMIN_FILE_ANCHOR}) and explicitly labels verification output so hardware backing is never overstated.
+  \item \textbf{Passphrase-Protected Parent Key \& PKCS\#7 Signed PDFs.} The parent's private keys ($SK_{\text{parent}}$ and ECDSA P-256 PDF signing key) are stored off the child's account in \nolinkurl{parent.key.json}, encrypted via \texttt{scrypt} ($N{=}32768, r{=}8, p{=}1$) + AES-256-GCM. Running \texttt{surakshanet-vault} \texttt{export} verifies the chain and anchor, decrypts all incidents, and generates a PDF~1.4 report embedding a standard ISO~32000-1 \nolinkurl{/adbe.pkcs7.detached} CMS signature \cite{rfc5652} (\nolinkurl{vault/internal/pdf/signed_pdf.go}). Any single-byte edit or trailing byte appended after \texttt{\%\%EOF} immediately invalidates \texttt{surakshanet-vault} \texttt{verify-pdf}.
+\end{enumerate}
+
+\subsection{Zero-Login Operational User Flow}
+No cloud account or user login is required. Figure~\ref{fig:user_flow} summarises the three-phase lifecycle: (1)~the parent runs the admin installer once ($\sim$2\,minutes), moves \texttt{parent.key.json} to a USB drive or personal device, and leaves the child on a standard OS account; (2)~the child browses normally with zero login while incidents are sealed and anchored silently; (3)~when needed, the parent runs \texttt{verify} and \texttt{export} offline to obtain a cryptographically verified, digitally signed PDF report.
+
+\begin{figure*}[!t]
+  \centering
+  \resizebox{\textwidth}{!}{\input{figures/fig_user_flow}}
+  \caption{Zero-login three-phase operational flow separating OS Administrator setup and offline private-key auditing from the child's daily Standard User session.}
+  \label{fig:user_flow}
+\end{figure*}
+
+\subsection{Security Evaluation, Live Tamper Proofs, and Latency}
+Table~\ref{tab:threat_matrix} contrasts the attack surface before and after introducing the vault. We validated all guarantees using Go race-detector unit tests (\texttt{go test -race ./...} across \texttt{crypto}, \texttt{chain}, \texttt{ipc}, and \texttt{pdf}) and a cross-language end-to-end suite (\texttt{vault/e2e\_test.mjs}) sealing English, Devanagari Hindi, and Hinglish messages in JavaScript Web Crypto, streaming them through \texttt{surakshanet-vault bridge} to \texttt{daemon}, verifying exact UTF-8 decryption parity, exporting a signed PDF, and executing live attacks.
+
+\begin{table*}[t]
+\centering
+\caption{Security comparison before (\texttt{extension\_v2} local storage) and after adding the Admin-Locked Parent Evidence Vault.}
+\label{tab:threat_matrix}
+\small
+\begin{tabularx}{\textwidth}{@{}l X X X@{}}
+\toprule
+\textbf{Threat / Attack Vector} & \textbf{Before (\texttt{chrome.storage.local})} & \textbf{After (Parent-Locked Vault)} & \textbf{Enforcement Mechanism} \\
+\midrule
+Remove or disable extension & One click in \nolinkurl{chrome://extensions} & \textbf{Blocked} for Standard OS user & Chrome \texttt{ExtensionInstallForcelist} in \texttt{HKLM} / \nolinkurl{/etc/opt/chrome/policies/managed} \\
+Click \textit{Clear} / wipe storage & All evidence permanently lost & \textbf{Blocked / No plaintext in browser} & Managed \texttt{lockMode} hides Clear UI; \texttt{store.js} writes ciphertext to daemon only \\
+Read saved chats on disk & Plaintext JSON readable by user & \textbf{Unreadable} (OS + crypto) & \texttt{0700 root}/NTFS ACL + ECDH-P256 sealed box ($SK_{\text{parent}}$ offline) \\
+Send wipe RPC over IPC & N/A & \textbf{Rejected} (Figure~\ref{fig:tamper_term}) & Strictly write-only IPC (\texttt{APPEND}, \texttt{HEARTBEAT}, \texttt{STATUS} only) \\
+Edit or delete middle record & Undetectable & \textbf{Immediately caught} & Broken SHA-256 \texttt{prev\_hash}, sequence gap, invalid Ed25519 sig \\
+Truncate tail of \texttt{vault.jsonl} & Undetectable & \textbf{Immediately caught} (Figure~\ref{fig:tamper_term}) & Cumulative digest $C_n$ \& count mismatch against TPM~2.0 / Admin Anchor \\
+Kill bridge / detach extension & Silent monitoring failure & \textbf{Logged as tamper alert} & Daemon heartbeat watchdog records \texttt{TAMPER\_HEARTBEAT\_GAP} \\
+Modify 1 byte of exported PDF & Unsigned \texttt{jsPDF}, trivial to fake & \textbf{Immediately caught} (Figure~\ref{fig:tamper_term}) & ISO 32000-1 \texttt{/adbe.pkcs7.detached} signature + full-file \texttt{/ByteRange} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+Figures~\ref{fig:e2e_term}, \ref{fig:tamper_term}, and \ref{fig:signed_pdf_shot} show real captured outputs from our end-to-end verification, simulated attack suite, and generated PKCS\#7 signed PDF.
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.92\textwidth]{screenshots/terminal_e2e_verify.png}
+  \caption{Live CLI verification (\texttt{verify}), parent decryption + PKCS\#7 PDF export (\texttt{export}), and cryptographic PDF signature check (\texttt{verify-pdf}) captured directly from \nolinkurl{surakshanet-vault}.}
+  \label{fig:e2e_term}
+\end{figure*}
+
+\begin{figure*}[!t]
+  \centering
+  \includegraphics[width=0.92\textwidth]{screenshots/terminal_tamper_attacks.png}
+  \caption{Live attack proofs: (1)~IPC \texttt{DELETE\_ALL} rejected as forbidden on the write-only socket, (2)~1-byte PDF edit caught via PKCS\#7 digest mismatch, and (3)~tail truncation of \texttt{vault.jsonl} caught via anchor count and cumulative digest mismatch.}
+  \label{fig:tamper_term}
+\end{figure*}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=\columnwidth]{screenshots/signed_pdf_preview.png}
+  \caption{Rendered page of a real PKCS\#7 digitally signed PDF exported by \texttt{surakshanet-vault} \texttt{export}, embedding chain integrity metadata, per-incident SHA-256 hashes, and decrypted multilingual evidence.}
+  \label{fig:signed_pdf_shot}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \resizebox{\columnwidth}{!}{\input{figures/fig_vault_bench}}
+  \caption{Measured latency of vault operations on Linux \texttt{x86\_64} (\nolinkurl{vault/bench_report.json}, $n{=}53$ appends and $n{=}10$ full-vault runs on 55 records) versus the 28\,ms ONNX inference baseline.}
+  \label{fig:vault_bench}
+\end{figure}
+
+\par\textbf{Performance Overhead.} Figure~\ref{fig:vault_bench} reports real microbenchmark measurements (\nolinkurl{vault/bench_vault.mjs}, saved in \nolinkurl{vault/bench_report.json}). Web Crypto sealed-box encryption takes a median of \textbf{0.70\,ms} (p95 1.15\,ms), and the full Native Messaging bridge + daemon \texttt{O\_APPEND} + \texttt{fsync} + Ed25519 + anchor round-trip takes \textbf{2.90\,ms} (p95 3.65\,ms). Thus, end-to-end tamper-evident capture adds only \textbf{3.60\,ms} on top of the 28\,ms ONNX inference latency, and runs solely when a message is flagged. Offline verification of 55 chained records takes \textbf{5.59\,ms}, PDF signature verification takes \textbf{3.31\,ms}, and full parent export (intentionally dominated by \texttt{scrypt} passphrase key derivation) completes in \textbf{87.51\,ms}. The Go binary cross-compiles cleanly to Linux (\texttt{amd64}), Windows (\texttt{amd64}), and macOS (\texttt{arm64}).
+
+%==============================================================
 \section{Final Deployed Configuration}
-Based on the complete evaluation, the current \textit{SurakshaNet} deployment uses the \textbf{INT8 MiniLM encoder with the gated conversational window}, which achieves:
+Based on the complete evaluation, the current \textit{SurakshaNet} deployment combines the \textbf{INT8 MiniLM encoder with the gated conversational window} and the \textbf{Parent-Locked Tamper-Evident Vault}, achieving:
 \begin{itemize}
     \item \textbf{84.2\%} accuracy on single-message classification,
     \item \textbf{76.1\%} recall on split-narrative conversations,
-    \item \textbf{82.9\%} accuracy when abusive content appears after small talk, and
-    \item \textbf{83.0\%} accuracy on benign conversations.
+    \item \textbf{82.9\%} accuracy when abusive content appears after small talk,
+    \item \textbf{83.0\%} accuracy on benign conversations, and
+    \item \textbf{3.60\,ms} median end-to-end vault sealing and privileged append overhead with 100\% detection of IPC wipe attempts, mid-log edits/deletions, tail truncation, and 1-byte PDF tampering.
 \end{itemize}
-The deployed extension does not send user conversations to Amazon Bedrock or any other cloud-based LLM; the Bedrock experiments were conducted solely for benchmarking, and the production inference path remains local, preserving the privacy-first design. The five-class thread models are research artifacts; the extension itself still uses the binary model.
+The deployed extension does not send user conversations to Amazon Bedrock or any other cloud-based LLM; the Bedrock experiments were conducted solely for benchmarking, and both inference and evidence preservation remain completely local, preserving the privacy-first design. The five-class thread models are research artifacts; the extension itself still uses the binary model.
 
 \subsection*{Limitations and next steps}
-The five-class data are generated by an LLM and checked by automatic rules; no human annotators reviewed them, so the scores in Section~\ref{sec:models} describe the synthetic distribution. A first zero-shot check of the synthetic-trained models on real conversation data (CAD, ConvAbuse, PRISM) gave AUROC between 0.47 and 0.74, so we see the dataset today as a controlled benchmark and as training material to be mixed with real data. Our Hinglish text is machine-converted and less code-mixed than human Hinglish, the cloud-LLM comparison uses small subsets, and latency of the five-class models was measured natively rather than in the browser. The child-safety features of Section~2.2 are described but not evaluated here. Next steps are adding real threaded data with held-out evaluation, obtaining human Hinglish threads, and measuring the INT8 thread models in the browser. The dataset contains synthetic abusive, harassing and grooming text and no real people; grooming threads use only non-sexual cues, and it should be used only to build protective classifiers.
+The five-class data are generated by an LLM and checked by automatic rules; no human annotators reviewed them, so the scores in Section~\ref{sec:models} describe the synthetic distribution. A first zero-shot check of the synthetic-trained models on real conversation data (CAD, ConvAbuse, PRISM) gave AUROC between 0.47 and 0.74, so we see the dataset today as a controlled benchmark and as training material to be mixed with real data. Our Hinglish text is machine-converted and less code-mixed than human Hinglish, the cloud-LLM comparison uses small subsets, and latency of the five-class models was measured natively rather than in the browser. For the evidence vault (Section~\ref{sec:vault}), three honest trust boundaries remain: (1)~no purely local vault can survive a full physical hard-drive wipe or a compromised OS Administrator/\texttt{root} account—defending against full disk destruction requires an optional zero-knowledge remote mirror of the already-encrypted sealed boxes (e.g., S3 Object Lock or a companion parent app); (2)~on non-domain-joined consumer Windows and macOS devices, Chrome restricts \texttt{ExtensionInstallForcelist} to Chrome Web Store extensions (requiring an unlisted store listing or Chrome Browser Cloud Management); and (3)~local capture proves post-capture integrity rather than WhatsApp server provenance (which would require network-level TLS attestation). Next steps are adding real threaded data with held-out evaluation, integrating the five-class INT8 thread model into the extension, testing hardware TPM~2.0 NV anchoring across consumer laptops, and adding optional zero-knowledge encrypted sync plus RFC~3161/OpenTimestamps anchoring.
 
 %==============================================================
 \section{Conclusion}
-\textit{SurakshaNet} demonstrates that proactive, multilingual moderation is technically viable on the edge. By combining low-latency local inference, conversational context handling, parent-controlled security settings, harmful-message hiding, and automatic forensic evidence collection, the system moves beyond a standalone text classifier toward a practical, privacy-first child-safety tool in the browser. The five-class thread benchmark shows that models which use conversation context, including a 118\,MB INT8 model, reach 97.9\% accuracy on held-out synthetic threads, which gives a clear route to context-aware detection on the device.
+\textit{SurakshaNet} demonstrates that proactive, multilingual moderation and forensic-grade child safety are technically viable entirely on the edge. By combining low-latency local INT8 inference, gated conversational-context handling, and an OS-admin-locked, cryptographically verifiable \textit{Parent Evidence Vault} (Web Crypto sealed boxes, a write-only \texttt{root}/\texttt{SYSTEM} append-only daemon, TPM~2.0 anchoring, and PKCS\#7 signed PDFs), the system closes the critical tampering gap of browser-only extensions while adding only 3.6\,ms of capture latency and zero cloud plaintext exposure. Alongside the 105{,}000-thread five-class benchmark (97.9\% synthetic test accuracy at 118\,MB INT8), this provides an end-to-end foundation for trustworthy, privacy-first protection of children and women online.
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

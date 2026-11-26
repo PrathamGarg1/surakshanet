@@ -1,0 +1,33 @@
+% Cryptographic Sealed-Box + Hash Chain + TPM Anchor pipeline
+\begin{tikzpicture}[
+  cbox/.style={draw=black!65, rounded corners=2pt, fill=#1, align=center,
+               font=\fontsize{6.6}{7.7}\selectfont, inner sep=3pt},
+  arr/.style={-{Stealth[length=1.7mm]}, thick, black!75}
+]
+  % Top row: Sealed Box inside Chrome Extension
+  \node[cbox=gray!12, text width=2.05cm] (msg) {\textbf{Flagged Incident}\\{\fontsize{5.8}{6.8}\selectfont\texttt{\{contact, text,\\score, severity, ts\}}}};
+  \node[cbox=blue!9, text width=2.4cm, right=4mm of msg] (ecdh) {\textbf{Ephemeral ECDH P-256}\\{\fontsize{5.8}{6.8}\selectfont Gen $(sk_e, pk_e)$; discard $sk_e$\\$S = \text{ECDH}(sk_e, PK_{\text{parent}})$}};
+  \node[cbox=yellow!16, text width=2.4cm, right=4mm of ecdh] (hkdf) {\textbf{HKDF-SHA256}\\{\fontsize{5.8}{6.8}\selectfont $\text{salt}=\text{SHA256}(pk_e \Vert PK_p)$\\$K = \text{HKDF}(S, \text{salt}, \text{info})$}};
+  \node[cbox=orange!13, text width=2.65cm, right=4mm of hkdf] (gcm) {\textbf{AES-256-GCM Seal}\\{\fontsize{5.8}{6.8}\selectfont $\text{AAD} = \text{info}\Vert pk_e \Vert PK_p$\\Output: \texttt{\{kid, epk, nonce, ct\}}}};
+
+  \draw[arr] (msg) -- (ecdh);
+  \draw[arr] (ecdh) -- (hkdf);
+  \draw[arr] (hkdf) -- (gcm);
+
+  % Bottom row: Hash chain + Ed25519 + TPM NV Extend
+  \node[cbox=purple!9, text width=2.35cm, below=9mm of msg] (r1) {\textbf{Record $i{-}1$}\\{\fontsize{5.8}{6.8}\selectfont\texttt{seq}: $i{-}1$, \texttt{sealed}$_{i-1}$\\$H_{i-1} = \text{SHA256}(\cdot)$\\$\sigma_{i-1} = \text{Ed25519}(H_{i-1})$}};
+  \node[cbox=purple!15, text width=2.75cm, right=5mm of r1] (r2) {\textbf{Record $i$ (Appended)}\\{\fontsize{5.8}{6.8}\selectfont\texttt{seq}: $i$, \texttt{prev\_hash}: $H_{i-1}$\\\texttt{caller}: (UID, PID), \texttt{sealed}$_i$\\$H_i = \text{SHA256}(\text{canon}_i)$, $\sigma_i$}};
+  \node[cbox=teal!12, text width=2.85cm, right=5mm of r2] (nv) {\textbf{TPM 2.0 NV Anchor}\\{\fontsize{5.8}{6.8}\selectfont Counter \texttt{0x01500043}: $\texttt{NV\_Inc}()$\\Digest \texttt{0x01500042}:\\$C_i = \text{SHA256}(C_{i-1} \Vert H_i)$}};
+  \node[cbox=green!12, text width=2.1cm, right=5mm of nv] (pdf) {\textbf{Signed PDF}\\{\fontsize{5.8}{6.8}\selectfont Parent $SK_{\text{parent}}$ decrypts\\+ PKCS\#7 detached sig}};
+
+  \draw[arr] (r1) -- node[above, font=\fontsize{5.8}{6.8}\selectfont]{$H_{i-1}$} (r2);
+  \draw[arr] (gcm.south) -- ++(0,-3.5mm) -| node[pos=0.22, above, font=\fontsize{5.8}{6.8}\selectfont]{ciphertext only} (r2.north);
+  \draw[arr] (r2) -- node[above, font=\fontsize{5.8}{6.8}\selectfont]{$H_i$} (nv);
+  \draw[arr] (nv) -- (pdf);
+
+  % Tamper callouts underneath
+  \node[font=\fontsize{5.8}{6.8}\selectfont, text=red!70!black, below=1.5mm of r1] {Edit mid-log $\Rightarrow$ $H$ \& $\sigma$ fail};
+  \node[font=\fontsize{5.8}{6.8}\selectfont, text=red!70!black, below=1.5mm of r2] {Delete row $\Rightarrow$ \texttt{seq}/\texttt{prev\_hash} break};
+  \node[font=\fontsize{5.8}{6.8}\selectfont, text=red!70!black, below=1.5mm of nv] {Tail truncate $\Rightarrow$ $C_n \neq \text{NV}$};
+  \node[font=\fontsize{5.8}{6.8}\selectfont, text=red!70!black, below=1.5mm of pdf] {1-byte edit $\Rightarrow$ PKCS\#7 fails};
+\end{tikzpicture}

@@ -1,0 +1,47 @@
+% Privilege-separated tamper-evident vault architecture (extension_v2 + vault/)
+\begin{tikzpicture}[
+  box/.style={draw=black!65, rounded corners=2.5pt, fill=#1, align=center,
+              font=\fontsize{6.8}{8.0}\selectfont, inner sep=3.5pt},
+  zone/.style={draw=#1!60!black, dashed, rounded corners=4pt, fill=#1!6, inner sep=6.5pt},
+  arr/.style={-{Stealth[length=1.9mm]}, thick, black!75}
+]
+  % Zone 1: Child Standard OS Account
+  \node[box=blue!9, text width=2.45cm] (chrome) {\textbf{Chrome (Policy-Locked)}\\{\fontsize{5.9}{6.9}\selectfont\texttt{ExtensionInstallForcelist}\\DevTools \& Incognito OFF}};
+  \node[box=orange!12, text width=2.55cm, right=4.5mm of chrome] (ext) {\textbf{SurakshaNet MV3 Ext.}\\{\fontsize{5.9}{6.9}\selectfont ONNX INT8 + Gated Window\\Holds \textbf{only} $PK_{\text{parent}}$\\No plaintext / No Clear UI}};
+  \node[box=yellow!16, text width=2.25cm, right=4.5mm of ext] (seal) {\textbf{\texttt{crypto\_seal.js}}\\{\fontsize{5.9}{6.9}\selectfont Web Crypto Sealed Box\\ECDH-P256 + AES-256-GCM\\Queues ciphertext if offline}};
+  \node[box=gray!14, text width=2.15cm, right=4.5mm of seal] (bridge) {\textbf{Native Bridge}\\{\fontsize{5.9}{6.9}\selectfont\texttt{surakshanet-vault bridge}\\Chrome \texttt{stdio} framing\\(\texttt{uint32 LE} + JSON)}};
+
+  \begin{scope}[on background layer]
+    \node[zone=blue, fit=(chrome)(ext)(seal)(bridge),
+          label={[fill=white, inner sep=1.5pt, font=\fontsize{6.8}{7.8}\selectfont\bfseries, text=blue!55!black, anchor=west, xshift=3mm]north west:Zone 1: Child's Standard (Non-Admin) OS Account — Untrusted / No Delete Rights}] (z1) {};
+  \end{scope}
+
+  % Privilege boundary line
+  \coordinate (bL) at ($(z1.south west)+(0,-5.5mm)$);
+  \coordinate (bR) at ($(z1.south east)+(0,-5.5mm)$);
+  \draw[red!75!black, very thick, densely dashed] (bL) -- (bR)
+    node[midway, fill=white, font=\fontsize{6.5}{7.5}\selectfont\bfseries, text=red!75!black, inner sep=2pt]
+    {OS KERNEL PRIVILEGE BOUNDARY (Unix Socket + \texttt{SO\_PEERCRED} / Local IPC — Strictly Write-Only RPCs)};
+
+  % Zone 2: Privileged Daemon (root / SYSTEM)
+  \node[box=red!9, text width=2.6cm, below=12.5mm of chrome] (ipc) {\textbf{Write-Only IPC Daemon}\\{\fontsize{5.9}{6.9}\selectfont Runs as \texttt{root} / \texttt{SYSTEM}\\Allows: \texttt{APPEND}, \texttt{HEARTBEAT}, \texttt{STATUS}\\Watchdog logs heartbeat gaps}};
+  \node[box=purple!10, text width=2.55cm, right=4.5mm of ipc] (chain) {\textbf{Hash-Chained Vault}\\{\fontsize{5.9}{6.9}\selectfont\texttt{vault.jsonl} (\texttt{0700 root})\\Linux \texttt{chattr +a} / Win NTFS ACL\\SHA-256 chain + Ed25519 sig}};
+  \node[box=teal!12, text width=2.3cm, right=4.5mm of chain] (tpm) {\textbf{Hardware Anchor}\\{\fontsize{5.9}{6.9}\selectfont TPM 2.0 (\texttt{go-tpm})\\Monotonic \texttt{NV\_Increment}\\+ Cumulative SHA-256 NV\\(or Admin Anchor fallback)}};
+  \node[box=green!11, text width=2.1cm, right=4.5mm of tpm] (parent) {\textbf{Parent Offline Tool}\\{\fontsize{5.9}{6.9}\selectfont Holds $SK_{\text{parent}}$ (USB)\\Verifies chain + TPM\\Exports PKCS\#7 PDF}};
+
+  \begin{scope}[on background layer]
+    \node[zone=red, fit=(ipc)(chain)(tpm),
+          label={[fill=white, inner sep=1.5pt, font=\fontsize{6.8}{7.8}\selectfont\bfseries, text=red!60!black, anchor=west, xshift=3mm]south west:Zone 2: Privileged Admin Service (\texttt{systemd root} / Windows \texttt{SYSTEM})}] (z2) {};
+    \node[zone=green!70!black, fit=(parent),
+          label={[fill=white, inner sep=1.5pt, font=\fontsize{6.6}{7.6}\selectfont\bfseries, text=green!45!black, anchor=center]south:Zone 3: Parent Admin}] (z3) {};
+  \end{scope}
+
+  % Arrows
+  \draw[arr] (chrome) -- (ext);
+  \draw[arr] (ext) -- (seal);
+  \draw[arr] (seal) -- (bridge);
+  \draw[arr] (bridge.south) -- ++(0,-3.5mm) -| (ipc.north);
+  \draw[arr] (ipc) -- (chain);
+  \draw[arr] (chain) -- (tpm);
+  \draw[arr] (tpm) -- (parent);
+\end{tikzpicture}

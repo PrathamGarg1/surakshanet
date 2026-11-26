@@ -1,0 +1,36 @@
+% Three-phase zero-login user operational workflow
+\begin{tikzpicture}[
+  phase/.style={draw=#1!65!black, rounded corners=3pt, fill=#1!8, align=left,
+                font=\fontsize{6.6}{7.9}\selectfont, inner sep=4.5pt, text width=3.55cm},
+  arr/.style={-{Stealth[length=2mm]}, very thick, black!65}
+]
+  \node[phase=blue] (p1) {
+    \textbf{\textcolor{blue!65!black}{Phase 1: One-Time Admin Setup}}\\
+    {\fontsize{5.9}{7}\selectfont\textit{Actor: Parent (OS Admin, $\sim$2 min)}}\\[2pt]
+    1. Run \texttt{install.sh} / \texttt{install.ps1}.\\
+    2. Generates $(PK_p, SK_p)$ + X.509 cert.\\
+    3. Saves encrypted \texttt{parent.key.json} to USB/parent device (removed from PC).\\
+    4. Writes Chrome Enterprise policy (\texttt{ExtensionInstallForcelist} + $PK_p$) \& starts \texttt{root}/\texttt{SYSTEM} daemon.
+  };
+
+  \node[phase=orange, right=5.5mm of p1] (p2) {
+    \textbf{\textcolor{orange!75!black}{Phase 2: Daily Silent Protection}}\\
+    {\fontsize{5.9}{7}\selectfont\textit{Actor: Child (Standard User, 0 login)}}\\[2pt]
+    1. Child opens Chrome $\rightarrow$ WhatsApp Web; extension is locked on.\\
+    2. Abusive turn detected on-device (28\,ms INT8 MiniLM + gate).\\
+    3. Sealed with $PK_p$ (0.7\,ms) $\rightarrow$ bridged to daemon (2.9\,ms) $\rightarrow$ append-only log.\\
+    4. Popup shows \texttt{LOCKED}; no Clear button, no plaintext visible.
+  };
+
+  \node[phase=green!70!black, right=5.5mm of p2] (p3) {
+    \textbf{\textcolor{green!45!black}{Phase 3: Offline Parent Audit}}\\
+    {\fontsize{5.9}{7}\selectfont\textit{Actor: Parent (Admin + $SK_p$)}}\\[2pt]
+    1. Run \texttt{surakshanet-vault verify} (checks chain, Ed25519 \& TPM anchor).\\
+    2. Run \texttt{export} with \texttt{parent.key.json} + passphrase ($\sim$88\,ms).\\
+    3. Decrypts English/Hindi/Hinglish logs \& outputs PKCS\#7 signed PDF.\\
+    4. Any third party runs \texttt{verify-pdf} with \texttt{parent.crt.pem} (3.3\,ms).
+  };
+
+  \draw[arr] (p1) -- (p2);
+  \draw[arr] (p2) -- (p3);
+\end{tikzpicture}
