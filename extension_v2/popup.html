@@ -355,14 +355,14 @@
     <section class="summary" aria-label="Incident summary">
       <div class="metric"><span class="metric-value" id="incident-count">0</span><span class="metric-label">Flagged</span></div>
       <div class="metric"><span class="metric-value" id="high-count">0</span><span class="metric-label">High risk</span></div>
-      <div class="metric"><span class="metric-value">LOCAL</span><span class="metric-label">Processing</span></div>
+      <div class="metric"><span class="metric-value" id="mode-badge">LOCAL</span><span class="metric-label" id="mode-label">Processing</span></div>
     </section>
     <main class="workspace">
       <div class="section-heading">
-        <h2>Incident log</h2>
-        <span>Newest first</span>
+        <h2 id="section-title">Incident log</h2>
+        <span id="section-meta">Newest first</span>
       </div>
-      <div class="actions" aria-label="Incident actions">
+      <div class="actions" id="actions" aria-label="Incident actions">
         <button id="export-pdf" type="button">Export PDF</button>
         <button id="export" type="button">Export JSON</button>
         <button id="clear" type="button">Clear local incidents</button>

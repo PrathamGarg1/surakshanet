@@ -3,7 +3,10 @@
   "name": "SurakshaNet",
   "version": "2.0.0",
   "description": "On-device WhatsApp Web abuse detection. Raw chat never leaves the browser.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "nativeMessaging", "alarms"],
+  "storage": {
+    "managed_schema": "managed_schema.json"
+  },
   "host_permissions": ["https://web.whatsapp.com/*"],
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"

@@ -19,8 +19,14 @@ function copyAssetsPlugin() {
         fs.copyFileSync(path.join(wasmSrc, file), path.join(wasmDest, file));
       }
       const modelSrc = path.resolve(__dirname, 'assets/models');
-      const modelDest = path.resolve(distDir, 'assets/models');
-      fs.cpSync(modelSrc, modelDest, { recursive: true });
+      if (fs.existsSync(modelSrc)) {
+        const modelDest = path.resolve(distDir, 'assets/models');
+        fs.cpSync(modelSrc, modelDest, { recursive: true });
+      }
+      const schemaSrc = path.resolve(__dirname, 'managed_schema.json');
+      if (fs.existsSync(schemaSrc)) {
+        fs.copyFileSync(schemaSrc, path.resolve(distDir, 'managed_schema.json'));
+      }
     },
   };
 }
