@@ -2,6 +2,8 @@ import { pipeline, env } from '@xenova/transformers';
 import weights from './assets/narrative/kv_weights.json' with { type: 'json' };
 import { NarrativeCache, RollingWindow } from './narrative_cache.js';
 import { saveIncident } from './store.js';
+import { getManagedPolicy } from './policy.js';
+import { sendHeartbeat, flushPendingSealed } from './vault_client.js';
 
 env.allowLocalModels = true;
 env.allowRemoteModels = false;
@@ -13,10 +15,21 @@ env.backends.onnx.wasm.proxy = false;
 env.backends.onnx.wasm.wasmPaths = chrome.runtime.getURL('assets/');
 
 const DEBUG = true;
-const DEBUG_LOG_MESSAGES = true;
+let DEBUG_LOG_MESSAGES = false;
+const HEARTBEAT_ALARM = 'surakshanet-vault-heartbeat';
 const FLAG = 0.5;
 const HIGH = 0.9;
 const PREFIX = '[SurakshaNet]';
+
+async function syncLockPolicyAndHeartbeat() {
+  const policy = await getManagedPolicy();
+  DEBUG_LOG_MESSAGES = !policy.lockMode;
+  if (policy.lockMode && chrome?.alarms) {
+    const periodMinutes = Math.max(1, Math.round(policy.heartbeatSec / 60));
+    chrome.alarms.create(HEARTBEAT_ALARM, { periodInMinutes: periodMinutes });
+    await sendHeartbeat();
+  }
+}
 
 let classifier = null;
 let modelPromise = null;
@@ -197,11 +210,29 @@ function enqueue(text, contact) {
 chrome.runtime.onInstalled.addListener((details) => {
   log('runtime:installed', { reason: details.reason });
   ensureModel().catch(() => {});
+  syncLockPolicyAndHeartbeat().catch(() => {});
 });
 chrome.runtime.onStartup.addListener(() => {
   log('runtime:startup');
   ensureModel().catch(() => {});
+  syncLockPolicyAndHeartbeat().catch(() => {});
 });
+if (chrome?.alarms) {
+  chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === HEARTBEAT_ALARM) {
+      sendHeartbeat().catch(() => {});
+    }
+  });
+}
+if (chrome?.storage?.onChanged) {
+  chrome.storage.onChanged.addListener((_changes, area) => {
+    if (area === 'managed') {
+      syncLockPolicyAndHeartbeat().catch(() => {});
+    }
+  });
+}
+syncLockPolicyAndHeartbeat().catch(() => {});
+flushPendingSealed().catch(() => {});
 chrome.runtime.onSuspend.addListener(() => log('runtime:suspend'));
 
 chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
