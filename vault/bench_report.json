@@ -1,0 +1,45 @@
+{
+  "measured_at": "2026-11-26T14:49:52.058Z",
+  "platform": "linux/x64",
+  "node_version": "v22.23.4",
+  "records_in_bench_vault": 55,
+  "sealed_box_js_webcrypto": {
+    "n": 53,
+    "median_ms": 0.7,
+    "p95_ms": 1.15,
+    "mean_ms": 0.93
+  },
+  "native_bridge_append_fsync": {
+    "n": 53,
+    "median_ms": 2.9,
+    "p95_ms": 3.65,
+    "mean_ms": 3
+  },
+  "vault_verify_cli_55_records": {
+    "n": 10,
+    "median_ms": 5.59,
+    "p95_ms": 6.31,
+    "mean_ms": 5.78
+  },
+  "parent_export_scrypt_decrypt_sign_pdf_55_records": {
+    "n": 10,
+    "median_ms": 87.51,
+    "p95_ms": 89.75,
+    "mean_ms": 86.28
+  },
+  "pdf_pkcs7_verify_cli": {
+    "n": 10,
+    "median_ms": 3.31,
+    "p95_ms": 3.76,
+    "mean_ms": 3.37
+  },
+  "demo_transcripts": {
+    "init": "SurakshaNet Vault initialized!\n  Vault Dir:        /tmp/surakshanet-bench-2EzZ0v/vault\n  Anchor Backend:   ADMIN_FILE_ANCHOR (using admin-only file anchor)\n  Kernel Append-On: false\n  Parent Key ID:    5424370ac389551e\n  Parent PublicKey: BLH9auDpvzooYxfE/YZzoc/eJzF0orFkhNg9YLZSXhgLQTBFpo1O0ZNfiPfQTH4m0KD9T0zIN3RSL82go69FoZM=\n  Parent Key File:  /tmp/surakshanet-bench-2EzZ0v/parent.key.json  <-- MOVE THIS TO PARENT'S USB / DEVICE & DELETE FROM CHILD PC!\n  Parent Pub File:  /tmp/surakshanet-bench-2EzZ0v/parent.pub.json\n  Parent Cert File: /tmp/surakshanet-bench-2EzZ0v/parent.crt.pem",
+    "verify": "Status:            VERIFIED (INTACT)\nAnchor Backend:    ADMIN_FILE_ANCHOR (matched=true)\nParent Key ID:     5424370ac389551e\nRecords Checked:   5 (incidents=3, tamper_alerts=0)\nHead Hash:         c35bebfe4c741417f504618684a1448a9e960f22f54009a0a484700741248e13\nCumulative Digest: 38f5d419b041d683c343f74ac20318ed527d1bab56b8af72372ddc2ce8648cb9",
+    "export": "Exported digitally signed evidence report!\n  Integrity:        OK=true (anchor=ADMIN_FILE_ANCHOR, matched=true)\n  Incidents:        3\n  Signed PDF:       /tmp/surakshanet-bench-2EzZ0v/surakshanet-verified-report.pdf (19606 bytes)\n  Verified JSON:    /tmp/surakshanet-bench-2EzZ0v/surakshanet-verified-report.json",
+    "verify_pdf": "PDF SIGNATURE VERIFIED!\n  Signer:       SurakshaNet Parent Guardian (5424370ac389551e)\n  Signed Bytes: 3220 / 19606\n  ByteRange:    [0 487 16873 2733]",
+    "attack_delete_ipc": "{\"ok\":false,\"error\":\"unsupported or forbidden action \\\"DELETE_ALL\\\" (vault IPC is strictly append-only)\"}",
+    "attack_pdf_1byte": "error: PDF signature verification FAILED against parent certificate: pkcs7: Message digest mismatch\n\tExpected: 776D5C28EB0DBC3C676FC39F05F920484981D572E27A152CB0E1E08163A19F83\n\tActual  : CA893AC7CB7E303FF715AC0B9D2F52478A9E1317C07FCCE3D0165CDF61706075",
+    "attack_tail_truncation": "Status:            TAMPERING DETECTED\nAnchor Backend:    ADMIN_FILE_ANCHOR (matched=false)\nParent Key ID:     5424370ac389551e\nRecords Checked:   54 (incidents=52, tamper_alerts=0)\nHead Hash:         8904eca19d63a2caf80a262c969f88570f923ed8336dd70ce6808e534bb57a41\nCumulative Digest: a81ad23f5ead1870b67d2cf04e4e567c9a3079f3f25c4d92cd7b328a56355927\n  [ERROR]   TAIL TRUNCATION OR REPLACEMENT DETECTED: log has 54 records (digest a81ad23f5ead1870...) but ADMIN_FILE_ANCHOR anchor recorded 55 records (digest 2491d6fb3860ac28...)\n\nerror: vault integrity verification FAILED"
+  }
+}
