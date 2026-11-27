@@ -1,10 +1,22 @@
 \documentclass[aspectratio=169,10pt]{beamer}
 
-% --- Encoding & Clean Sans-Serif Typography ---
-\usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\renewcommand{\familydefault}{\sfdefault}
-\usepackage{microtype}
+% --- Engine-Aware Clean Modern Fonts (Inter + JetBrains Mono in XeLaTeX/Tectonic; FiraSans in pdfLaTeX) ---
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[sfdefault]{FiraSans}
+  \usepackage[scale=0.86]{FiraMono}
+\else
+  \usepackage{fontspec}
+  \setsansfont{Inter}[
+    UprightFont = *,
+    BoldFont = * Bold,
+    ItalicFont = * Italic,
+    BoldItalicFont = * Bold Italic
+  ]
+  \setmonofont{JetBrains Mono}[Scale=0.84]
+  \renewcommand{\familydefault}{\sfdefault}
+\fi
 
 % --- Packages ---
 \usepackage{amssymb}
@@ -13,747 +25,604 @@
 \usepackage{array}
 \usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc,shapes.geometric}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 \usepackage{pgfplots}
-\pgfplotsset{compat=1.16}
-\usepackage[most]{tcolorbox}
+\pgfplotsset{compat=1.18}
 \usepackage{xurl}
 \usepackage{hyperref}
 
-% --- SurakshaNet Brand Palette ---
-\definecolor{snDark}{HTML}{1B1E24}
-\definecolor{snAccent}{HTML}{F15A24}
-\definecolor{snBlue}{HTML}{2563EB}
-\definecolor{snGreen}{HTML}{059669}
-\definecolor{snRed}{HTML}{DC2626}
-\definecolor{snAmber}{HTML}{D97706}
-\definecolor{snPurple}{HTML}{7C3AED}
-\definecolor{snMuted}{HTML}{5B6370}
-\definecolor{snLightBg}{HTML}{F6F7FA}
-\definecolor{snCardBorder}{HTML}{DFE3EA}
-\definecolor{snOrangeBg}{HTML}{FFF7ED}
+% --- Strict Two-Tone Academic Palette (Slate Navy + Restrained Crimson) ---
+\definecolor{ink}{HTML}{0F172A}
+\definecolor{slate}{HTML}{475569}
+\definecolor{muted}{HTML}{64748B}
+\definecolor{rulegray}{HTML}{CBD5E1}
+\definecolor{tint}{HTML}{F8FAFC}
+\definecolor{accent}{HTML}{B91C1C}
+\definecolor{okgreen}{HTML}{15803D}
 
-% --- Clean Minimalist Beamer Setup ---
+% --- Pure Minimalist Academic Beamer Theme (No boxes, no shadows, no gradients) ---
 \usetheme{default}
 \setbeamertemplate{navigation symbols}{}
-\setbeamersize{text margin left=0.75cm, text margin right=0.75cm}
+\setbeamersize{text margin left=0.85cm, text margin right=0.85cm}
 
-\setbeamercolor{normal text}{fg=snDark, bg=white}
-\setbeamercolor{structure}{fg=snAccent}
-\setbeamercolor{frametitle}{fg=snDark, bg=white}
-\setbeamercolor{framesubtitle}{fg=snMuted}
-\setbeamercolor{itemize item}{fg=snAccent}
-\setbeamercolor{itemize subitem}{fg=snBlue}
-\setbeamercolor{enumerate item}{fg=snAccent}
-\setbeamertemplate{itemize item}{\scriptsize$\blacktriangleright$}
-\setbeamertemplate{itemize subitem}{\tiny$\bullet$}
+\setbeamercolor{normal text}{fg=ink, bg=white}
+\setbeamercolor{structure}{fg=ink}
+\setbeamercolor{frametitle}{fg=ink, bg=white}
+\setbeamercolor{itemize item}{fg=accent}
+\setbeamercolor{itemize subitem}{fg=slate}
+\setbeamercolor{enumerate item}{fg=accent}
+\setbeamertemplate{itemize item}{\raisebox{0.18ex}{\tiny\rule{3.2pt}{3.2pt}}}
+\setbeamertemplate{itemize subitem}{\scriptsize--}
 
-% --- Custom Clean Frametitle with Orange Accent Bar ---
+% --- Clean Frametitle with Hairline Rule ---
 \setbeamertemplate{frametitle}{%
-  \vspace*{0.16cm}%
+  \vspace*{0.22cm}%
   \begin{beamercolorbox}[wd=\textwidth,leftskip=0pt,rightskip=0pt]{frametitle}%
-    {\large\bfseries\color{snDark}\insertframetitle}%
-    \ifx\insertframesubtitle\@empty\else%
-      \par\vspace{1pt}{\scriptsize\color{snMuted}\insertframesubtitle}%
-    \fi%
+    {\large\bfseries\color{ink}\insertframetitle}%
   \end{beamercolorbox}%
-  \vspace{2pt}%
-  {\color{snAccent}\hrule height 1.1pt}%
-  \vspace{2pt}%
+  \vspace{3pt}%
+  {\color{rulegray}\hrule height 0.6pt}%
+  \vspace{4pt}%
 }
 
-% --- Clean Footer (Progress bar + text via overlay, zero overlap!) ---
+% --- Minimal Footer (Subtle hairlines + slide number) ---
 \setbeamertemplate{footline}{%
   \ifnum\value{framenumber}>1
   \begin{tikzpicture}[remember picture,overlay]
+    \draw[rulegray, line width=0.4pt] ([xshift=0.85cm, yshift=16pt]current page.south west) -- ([xshift=-0.85cm, yshift=16pt]current page.south east);
     \pgfmathsetmacro{\progress}{\insertframenumber/\inserttotalframenumber}
-    \fill[snCardBorder] ([yshift=14pt]current page.south west) rectangle ([yshift=15.3pt]current page.south east);
-    \fill[snAccent] ([yshift=14pt]current page.south west) rectangle ([xshift=\progress\paperwidth, yshift=15.3pt]current page.south west);
-    \node[anchor=west, font=\fontsize{6.6}{7.6}\selectfont, text=snMuted] at ([xshift=0.75cm, yshift=7pt]current page.south west)
-      {\textbf{SurakshaNet} \;\textbar\; On-Device Abuse Detection \& Parent Evidence Vault};
-    \node[anchor=east, font=\fontsize{6.6}{7.6}\selectfont, text=snMuted] at ([xshift=-0.75cm, yshift=7pt]current page.south east)
-      {IIT Ropar \quad\textbf{\color{snDark}\insertframenumber{} / \inserttotalframenumber}};
+    \draw[accent, line width=1.1pt] ([xshift=0.85cm, yshift=16pt]current page.south west) -- ++(\progress*\textwidth, 0);
+    \node[anchor=west, font=\fontsize{6.6}{7.6}\selectfont, text=muted] at ([xshift=0.85cm, yshift=8.5pt]current page.south west)
+      {SurakshaNet \;\textbar\; Department of CSE, IIT Ropar};
+    \node[anchor=east, font=\fontsize{6.6}{7.6}\selectfont, text=muted] at ([xshift=-0.85cm, yshift=8.5pt]current page.south east)
+      {\textbf{\color{ink}\insertframenumber} / \inserttotalframenumber};
   \end{tikzpicture}%
-  \vspace*{16pt}%
+  \vspace*{19pt}%
   \fi
 }
 
-% --- Reusable Card Boxes (raggedright prevents stretched spaces!) ---
-\newtcolorbox{softcard}[2][snCardBorder]{
-  colback=snLightBg,
-  colframe=#1,
-  arc=4pt,
-  boxrule=0.7pt,
-  left=7pt, right=7pt, top=5pt, bottom=5pt,
-  fonttitle=\bfseries\footnotesize\color{snDark},
-  colbacktitle=snLightBg,
-  title={#2},
-  attach title to upper={\par\vspace{2pt}},
-  halign=flush left,
-  halign title=flush left
+% --- Crisp Hairline Frame Helper for Real Screenshots ---
+\setlength{\fboxsep}{0pt}
+\setlength{\fboxrule}{0.5pt}
+\newcommand{\shot}[2]{%
+  \fcolorbox{rulegray}{white}{\includegraphics[#1]{#2}}%
 }
 
-\newtcolorbox{accentcard}[2][snAccent]{
-  colback=snOrangeBg,
-  colframe=#1,
-  borderline west={3pt}{0pt}{#1},
-  arc=3pt,
-  boxrule=0.5pt,
-  left=8pt, right=8pt, top=4pt, bottom=4pt,
-  fonttitle=\bfseries\footnotesize\color{#1},
-  colbacktitle=snOrangeBg,
-  title={#2},
-  attach title to upper={\par\vspace{2pt}},
-  halign=flush left,
-  halign title=flush left
-}
-
-\newtcolorbox{metriccard}{
-  colback=snLightBg,
-  colframe=snCardBorder,
-  arc=4pt,
-  boxrule=0.7pt,
-  halign=center,
-  valign=center,
-  height=1.65cm,
-  left=3pt, right=3pt, top=3pt, bottom=3pt
-}
-
-% --- Custom Pill Badge ---
-\newcommand{\pill}[2]{%
-  \tikz[baseline=(char.base)]{\node[fill=#1, text=white, rounded corners=2.5pt, inner xsep=4.5pt, inner ysep=1.5pt, font=\fontsize{6.5}{7.5}\selectfont\bfseries] (char) {#2};}%
-}
-
-% --- Shared Slide TikZ Styles ---
+% --- Minimalist Rectilinear TikZ Styles ---
 \tikzset{
-  stepbox/.style={draw=#1!60, fill=#1!10, rounded corners=4pt, minimum height=1.18cm, text width=2.95cm, align=center, font=\scriptsize},
-  steparr/.style={-{Stealth[length=2.1mm]}, thick, snMuted},
-  pillar/.style={draw=#1!65, fill=#1!8, rounded corners=5pt, text width=3.1cm, minimum height=4.85cm, align=left, inner xsep=7pt, inner ysep=8pt},
-  pillarnum/.style={circle, fill=#1, text=white, font=\footnotesize\bfseries, minimum size=0.6cm, inner sep=0pt, draw=white, line width=1.5pt},
-  pillararr/.style={-{Stealth[length=2.2mm]}, very thick, snMuted},
-  archbox/.style={draw=black!60, rounded corners=3pt, fill=#1, align=center, font=\scriptsize, inner sep=4pt, minimum height=1.42cm},
-  archzone/.style={draw=#1!65!black, dashed, thick, rounded corners=5pt, fill=#1!6, inner sep=7pt},
-  archarr/.style={-{Stealth[length=2.1mm]}, thick, black!75},
-  chainrec/.style={draw=#1!65, fill=#1!10, rounded corners=4pt, text width=3.05cm, minimum height=2.15cm, align=center, font=\scriptsize, inner sep=5pt},
-  chainarr/.style={-{Stealth[length=2.1mm]}, thick, snDark}
+  sysbox/.style={draw=ink!75, fill=tint, line width=0.6pt, align=center, font=\fontsize{6.8}{8.2}\selectfont, inner sep=4.5pt, minimum height=1.35cm},
+  sysboxacc/.style={draw=accent, fill=white, line width=0.8pt, align=center, font=\fontsize{6.8}{8.2}\selectfont, inner sep=4.5pt, minimum height=1.35cm},
+  syszone/.style={draw=slate!70, dashed, line width=0.65pt, fill=white, inner sep=7pt},
+  sysarr/.style={-{Stealth[length=2mm]}, line width=0.75pt, ink!80},
+  flowbox/.style={draw=ink!70, fill=tint, line width=0.6pt, align=center, font=\fontsize{7}{8.4}\selectfont, inner sep=5pt, minimum height=1.25cm}
 }
 
 \begin{document}
 
 %==============================================================
-% SLIDE 1: TITLE SLIDE
+% SLIDE 1: MINIMALIST ACADEMIC COVER
 %==============================================================
 \begin{frame}[plain]
   \begin{tikzpicture}[remember picture,overlay]
-    \fill[snDark] (current page.north west) rectangle ([yshift=-0.95cm]current page.north east);
-    \fill[snAccent] ([yshift=-0.95cm]current page.north west) rectangle ([yshift=-1.08cm]current page.north east);
-    \node[anchor=west, text=white, font=\scriptsize\bfseries] at ([xshift=0.75cm, yshift=-0.48cm]current page.north west)
-      {IIT ROPAR \;\textbullet\; TECHNICAL PROJECT PRESENTATION};
-    \node[anchor=east, text=white!80, font=\scriptsize] at ([xshift=-0.75cm, yshift=-0.48cm]current page.north east)
-      {20-Minute Talk};
+    \fill[accent] (current page.north west) rectangle ([xshift=0.28cm]current page.south west);
   \end{tikzpicture}
 
-  \vspace{1.05cm}
-
-  \begin{columns}[c]
+  \vspace*{0.25cm}
+  \begin{columns}[T]
     \begin{column}{0.76\textwidth}
-      {\Huge\bfseries\color{snDark} SurakshaNet}\\[0.18cm]
-      {\large\color{snMuted} On-Device Multilingual Abuse Detection and a\\Tamper-Evident Parent Evidence Vault}\\[0.35cm]
-      {\small\textbf{Aamod Jain}$^*$ \quad\textbullet\quad \textbf{Pratham Garg}$^*$ \quad\textbullet\quad \textbf{Geeta Yadav}}\\[0.08cm]
-      {\scriptsize\color{snMuted}$^*$Equal contribution \;\textbar\; Department of Computer Science and Engineering, IIT Ropar}\\[0.06cm]
-      {\scriptsize\color{snBlue} Earlier poster accepted at ACM MobiSys Companion '26 (\texttt{doi:10.1145/3812835.3814864})}
+      {\fontsize{7.5}{9}\selectfont\bfseries\color{accent}INDIAN INSTITUTE OF TECHNOLOGY ROPAR \quad\textbullet\quad PROJECT PRESENTATION}
     \end{column}
     \begin{column}{0.20\textwidth}
-      \centering
-      \includegraphics[width=2.3cm]{assets/iitr_logo.png}
+      \raggedleft
+      \includegraphics[width=1.75cm]{assets/iitr_logo.png}
     \end{column}
   \end{columns}
+
+  \vspace*{-0.55cm}
+  {\fontsize{28}{32}\selectfont\bfseries\color{ink} SurakshaNet}\\[0.22cm]
+  {\large\color{slate} On-Device Multilingual Abuse Detection and a\\Tamper-Evident Parent Evidence Vault}\\[0.45cm]
+
+  {\small\textbf{Aamod Jain}$^*$ \quad\textbar\quad \textbf{Pratham Garg}$^*$ \quad\textbar\quad \textbf{Geeta Yadav}}\\[0.08cm]
+  {\scriptsize\color{muted} $^*$Equal contribution \;\textbullet\; Department of Computer Science and Engineering, IIT Ropar}\\[0.05cm]
+  {\scriptsize\color{muted} Earlier poster accepted at ACM MobiSys Companion '26 (\texttt{doi:10.1145/3812835.3814864})}
 
   \vspace{0.55cm}
+  {\color{rulegray}\hrule height 0.6pt}
+  \vspace{0.35cm}
 
   \begin{columns}[T]
-    \begin{column}{0.235\textwidth}
-      \begin{metriccard}
-        {\Large\bfseries\color{snAccent} 118\,MB}\\[2pt]
-        {\scriptsize\color{snMuted} INT8 Local Model\\(75\% smaller)}
-      \end{metriccard}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{ink} 118\,MB}\\[2pt]
+      {\scriptsize\color{muted} INT8 browser model\\(75\% size reduction)}
     \end{column}
-    \begin{column}{0.235\textwidth}
-      \begin{metriccard}
-        {\Large\bfseries\color{snAccent} 28\,ms}\\[2pt]
-        {\scriptsize\color{snMuted} On-Device Speed\\(Zero cloud calls)}
-      \end{metriccard}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{ink} 28\,ms}\\[2pt]
+      {\scriptsize\color{muted} Local inference latency\\(zero cloud calls)}
     \end{column}
-    \begin{column}{0.235\textwidth}
-      \begin{metriccard}
-        {\Large\bfseries\color{snAccent} 97.9\%}\\[2pt]
-        {\scriptsize\color{snMuted} 5-Class Thread Model\\(105k chat threads)}
-      \end{metriccard}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{ink} 97.9\%}\\[2pt]
+      {\scriptsize\color{muted} 5-class thread accuracy\\(105k chat threads)}
     \end{column}
-    \begin{column}{0.235\textwidth}
-      \begin{metriccard}
-        {\Large\bfseries\color{snAccent} 3.6\,ms}\\[2pt]
-        {\scriptsize\color{snMuted} Tamper-Proof Vault\\Capture Overhead}
-      \end{metriccard}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{accent} 3.6\,ms}\\[2pt]
+      {\scriptsize\color{muted} Tamper-evident vault\\capture overhead}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 2: THE PROBLEM & TALK ROADMAP
+% SLIDE 2: PROBLEM & 20-MINUTE AGENDA
 %==============================================================
-\begin{frame}{Why SurakshaNet? Three Real-World Safety Gaps}
+\begin{frame}{Problem Motivation and Talk Outline}
+  \vspace{0.15cm}
   \begin{columns}[T]
-    \begin{column}{0.315\textwidth}
-      \begin{softcard}[snBlue!45]{1. Cloud Privacy Risk}
-        \scriptsize
-        Most moderation tools upload private chats to external servers.\\[5pt]
-        Families and kids should not expose personal chats just to stay safe.
-      \end{softcard}
+    \begin{column}{0.30\textwidth}
+      {\fontsize{22}{24}\selectfont\bfseries\color{rulegray} 01}\\[3pt]
+      {\small\bfseries\color{ink} Cloud Privacy Risk}\\[5pt]
+      {\footnotesize\color{slate} Standard moderation APIs upload private chats to external servers. Families should not expose personal conversations just to stay safe.}
     \end{column}
-    \begin{column}{0.315\textwidth}
-      \begin{softcard}[snAmber!60]{2. Hinglish \& Chat Context}
-        \scriptsize
-        Indian users mix English and Hindi in Roman script (\textbf{Hinglish}).\\[5pt]
-        Abuse and grooming unfold across multiple short replies, not one line.
-      \end{softcard}
+    \begin{column}{0.30\textwidth}
+      {\fontsize{22}{24}\selectfont\bfseries\color{rulegray} 02}\\[3pt]
+      {\small\bfseries\color{ink} Hinglish \& Chat Context}\\[5pt]
+      {\footnotesize\color{slate} Daily chats in India mix Hindi and English in Roman script. Harassment and grooming unfold over several short turns, not one line.}
     \end{column}
-    \begin{column}{0.315\textwidth}
-      \begin{softcard}[snRed!55]{3. Easy Evidence Deletion}
-        \scriptsize
-        Saving flagged chats in browser storage is trivial to defeat.\\[5pt]
-        A child or predator can uninstall the extension or click \textit{Clear} in seconds.
-      \end{softcard}
+    \begin{column}{0.30\textwidth}
+      {\fontsize{22}{24}\selectfont\bfseries\color{accent!45} 03}\\[3pt]
+      {\small\bfseries\color{accent} Easy Evidence Deletion}\\[5pt]
+      {\footnotesize\color{slate} Saving flagged chats in browser storage is trivial to erase. A child or predator can uninstall the extension or click \textit{Clear} in seconds.}
     \end{column}
   \end{columns}
 
-  \vspace{0.45cm}
+  \vspace{0.7cm}
+  {\color{rulegray}\hrule height 0.5pt}
+  \vspace{0.35cm}
 
-  \begin{center}
-  \resizebox{0.96\textwidth}{!}{%
-  \begin{tikzpicture}
-    \node[stepbox=snBlue] (s1) {\textbf{\color{snBlue}Part 1 (3 min)}\\On-Device AI\\(v1 + v2 Recap)};
-    \node[stepbox=snPurple, right=0.45cm of s1] (s2) {\textbf{\color{snPurple}Part 2 (3 min)}\\105k Dataset \&\\5-Class Models};
-    \node[stepbox=snAccent, very thick, right=0.45cm of s2] (s3) {\textbf{\color{snAccent}Part 3 (10 min)}\\4-Pillar Parent\\Evidence Vault (v3)};
-    \node[stepbox=snGreen, right=0.45cm of s3] (s4) {\textbf{\color{snGreen}Part 4 (4 min)}\\Live Attack Proofs\\\& Benchmarks};
-
-    \draw[steparr] (s1) -- (s2);
-    \draw[steparr] (s2) -- (s3);
-    \draw[steparr] (s3) -- (s4);
-  \end{tikzpicture}%
-  }
-  \end{center}
-
-  \vspace{0.2cm}
-  \centering{\footnotesize\color{snMuted} Today's main focus: \textbf{\color{snDark}Part 3 \& Part 4 --- our 100\% offline, tamper-evident Parent Evidence Vault.}}
+  {\scriptsize\bfseries\color{muted} TALK OUTLINE (20 MINUTES)}\\[6pt]
+  \begin{columns}[T]
+    \begin{column}{0.23\textwidth}
+      {\footnotesize\bfseries 1. On-Device AI}\\[-1pt]
+      {\scriptsize\color{muted} v1 + v2 recap (3 min)}
+    \end{column}
+    \begin{column}{0.23\textwidth}
+      {\footnotesize\bfseries 2. 5-Class Benchmark}\\[-1pt]
+      {\scriptsize\color{muted} 105k threads (3 min)}
+    \end{column}
+    \begin{column}{0.26\textwidth}
+      {\footnotesize\bfseries\color{accent} 3. Parent Evidence Vault}\\[-1pt]
+      {\scriptsize\color{muted} 4 core pillars --- main focus (10 min)}
+    \end{column}
+    \begin{column}{0.24\textwidth}
+      {\footnotesize\bfseries 4. Live Proofs \& Limits}\\[-1pt]
+      {\scriptsize\color{muted} Real macOS demo + speed (4 min)}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 3: FOUNDATION RECAP (v1 LOCAL AI)
+% SLIDE 3: FOUNDATION RECAP WITH REAL MACBOOK WHATSAPP V2 SHOT
 %==============================================================
-\begin{frame}{Foundation Recap: Fast On-Device Detection on WhatsApp Web}
+\begin{frame}{Foundation Recap: On-Device Detection on WhatsApp Web}
   \begin{columns}[c]
-    \begin{column}{0.49\textwidth}
-      \textbf{\small\color{snDark}100\% Local In-Browser AI (v1)}
+    \begin{column}{0.46\textwidth}
+      {\small\bfseries\color{ink} Local AI Pipeline (v1 \& v2)}
+      \vspace{0.15cm}
       \begin{itemize}\footnotesize
-        \setlength\itemsep{6pt}
-        \item Compressed multilingual \texttt{MiniLM-L12-v2} from \textbf{471\,MB to 113\,MB} using INT8 quantization (76\% smaller).
-        \item Runs directly inside a Chrome MV3 Service Worker via \textbf{ONNX Runtime Web + WebAssembly}.
-        \item \textbf{28\,ms} median speed per message, \textbf{$\sim$89\,MB RAM}, and \textbf{zero network calls}.
-        \item Watches incoming WhatsApp Web chats via \texttt{MutationObserver} and attaches instant warning banners.
-        \item Reached \textbf{88.0\%} accuracy on Hindi + English (less than 0.11\% drop from FP32).
+        \setlength\itemsep{7pt}
+        \item \textbf{Compact INT8 model:} Quantized multilingual \texttt{MiniLM-L12-v2} from 471\,MB down to \textbf{118\,MB} (75\% smaller).
+        \item \textbf{Runs inside Chrome:} Executes inside an MV3 Service Worker via ONNX Runtime Web and WebAssembly in \textbf{28\,ms} (zero cloud uploads).
+        \item \textbf{Hinglish + Gated Window:} Retrained on 58{,}929 Hindi, English, and Hinglish messages. When a reply is short ($<8$ words), it also scores the last 8 turns.
+        \item \textbf{Impact:} Split-narrative recall rises from \textbf{28.9\% to 76.1\%}, keeping \textbf{83.0\%} accuracy on harmless chats.
       \end{itemize}
     \end{column}
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.51\textwidth}
       \centering
-      \fcolorbox{snCardBorder}{white}{\includegraphics[height=5.3cm]{assets/whatsapp_demo.jpeg}}\\[3pt]
-      {\scriptsize\color{snMuted} Live WhatsApp Web detection on Hindi and Hinglish chats.}
+      \shot{width=\textwidth}{assets/mac_whatsapp_v2.jpg}\\[4pt]
+      {\scriptsize\color{muted} Live v2 extension flagging Hindi abuse directly on WhatsApp Web.}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 4: HINGLISH CONTEXT WINDOW & 5-CLASS BENCHMARK
+% SLIDE 4: 105K 5-CLASS BENCHMARK
 %==============================================================
-\begin{frame}{Handling Hinglish, Chat Context, and Five Abuse Classes}
+\begin{frame}{Context-Aware Five-Class Multilingual Benchmark}
   \begin{columns}[T]
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snBlue!45]{Extension v2: Hinglish + Gated Window}
-        \scriptsize
-        \begin{itemize}
-          \setlength\itemsep{3.5pt}
-          \item Retrained on \textbf{58{,}929} Hindi, English, and Hinglish messages (\textbf{118.4\,MB} INT8 model).
-          \item \textbf{Gated Chat Window:} If a new reply is short ($<8$ words), score both the message and the last 8 turns, then take the max.
-          \item Split-narrative recall jumps from \textbf{28.9\% $\rightarrow$ 76.1\%}, keeping \textbf{83.0\%} accuracy on harmless chats.
-          \item Matches or beats cloud LLMs (Nova Micro, Qwen3 32B) on Hinglish slices --- fully offline.
-        \end{itemize}
-      \end{softcard}
+    \begin{column}{0.51\textwidth}
+      {\small\bfseries\color{ink} 105{,}000 Multi-Turn Conversations}
+      \vspace{0.08cm}
+      \begin{itemize}\footnotesize
+        \setlength\itemsep{3.5pt}
+        \item Balanced across \textbf{English, Hindi, and Hinglish} (3, 5, 7, and 10 turns).
+        \item Five classes: \texttt{benign}, \texttt{friendly\_sarcasm}, \texttt{hostile\_abuse}, \texttt{sexual\_harassment}, and \texttt{predatory\_grooming}.
+        \item Half of sarcasm and hostile threads share the \textbf{exact same final sentence}, forcing the model to read prior turns.
+      \end{itemize}
+
+      \vspace{0.18cm}
+      \scriptsize
+      \setlength{\tabcolsep}{4.5pt}
+      \renewcommand{\arraystretch}{1.2}
+      \begin{tabular}{@{}l r r r@{}}
+        \toprule
+        \textbf{Model Variant} & \textbf{Size} & \textbf{Accuracy} & \textbf{Macro-F1} \\
+        \midrule
+        A. Thread Model (FP32) & 470.8\,MB & 97.96\% & 0.980 \\
+        \textbf{A. Thread Model (INT8)} & \textbf{118.2\,MB} & \textbf{97.88\%} & \textbf{0.979} \\
+        C. Frozen MiniLM + GRU & 118.8\,MB & 94.91\% & 0.950 \\
+        B. Last Message Only & 470.8\,MB & 83.18\% & 0.828 \\
+        \bottomrule
+      \end{tabular}
     \end{column}
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snPurple!45]{105{,}000-Thread 5-Class Benchmark}
-        \scriptsize
-        \begin{itemize}
-          \setlength\itemsep{3pt}
-          \item Balanced multilingual dataset across \textbf{English, Hindi, and Hinglish} (3, 5, 7, and 10 turns).
-          \item Five distinct classes:
-            \begin{enumerate}\fontsize{6.8}{8}\selectfont
-              \setlength\itemsep{1pt}
-              \item \texttt{benign} (normal + tricky safe chats)
-              \item \texttt{friendly\_sarcasm} (playful teasing)
-              \item \texttt{hostile\_abuse} (direct insults)
-              \item \texttt{sexual\_harassment} (unwanted pressure)
-              \item \texttt{predatory\_grooming} (secrecy, private apps)
-            \end{enumerate}
-          \item INT8 thread model hits \textbf{97.9\% accuracy} (vs.\ 83.2\% last-message-only).
-        \end{itemize}
-      \end{softcard}
+    \begin{column}{0.44\textwidth}
+      {\small\bfseries\color{ink} Why Prior Turns Matter}
+      \vspace{0.12cm}
+
+      {\scriptsize\bfseries\color{okgreen} FRIENDLY SARCASM}\\[2pt]
+      {\footnotesize\color{slate} ``You looked like a walking mannequin at the mall today!''}\\[1.5pt]
+      {\footnotesize\color{slate} ``At least I don't dress like a toddler.''}\\[2pt]
+      {\footnotesize\textbf{$\rightarrow$ ``try using your head''}}
+
+      \vspace{0.22cm}
+      {\color{rulegray}\hrule height 0.4pt}
+      \vspace{0.18cm}
+
+      {\scriptsize\bfseries\color{accent} HOSTILE ABUSE}\\[2pt]
+      {\footnotesize\color{slate} ``You really had to buy that phone? We can't afford it!''}\\[1.5pt]
+      {\footnotesize\color{slate} ``I didn't ask for your opinion. My money.''}\\[2pt]
+      {\footnotesize\textbf{$\rightarrow$ ``try using your head''}}
+
+      \vspace{0.22cm}
+      {\scriptsize\color{muted} Our INT8 thread model scores \textbf{\color{ink}97.5\%} on these shared-last-line pairs (28.3\,ms per 5-turn thread).}
     \end{column}
   \end{columns}
-
-  \vspace{0.2cm}
-  \begin{accentcard}[snAccent]{Why Context Matters --- Same Last Line, Opposite Meaning}
-    \scriptsize
-    \textit{Friendly sarcasm:} ``You looked like a mannequin!'' $\rightarrow$ \textbf{``try using your head''} (Safe) \quad\textbar\quad
-    \textit{Hostile abuse:} ``We can't afford that phone!'' $\rightarrow$ \textbf{``try using your head''} (Abusive) --- Our thread model gets \textbf{97.5\%} of these pairs right.
-  \end{accentcard}
 \end{frame}
 
 %==============================================================
-% SLIDE 5: THE CORE PROBLEM FOR V3 (WHY BROWSER STORAGE FAILS)
+% SLIDE 5: SECTION DIVIDER — V3 EVIDENCE VAULT
 %==============================================================
-\begin{frame}{The Missing Piece: Why Browser Storage Fails in Child Safety}
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[ink] (current page.north west) rectangle (current page.south east);
+    \fill[accent] ([xshift=0.85cm, yshift=-3.65cm]current page.north west) rectangle ([xshift=2.6cm, yshift=-3.76cm]current page.north west);
+  \end{tikzpicture}
+
+  \vspace*{1.6cm}
+  {\fontsize{11}{13}\selectfont\bfseries\color{accent} PART 3 \quad\textbullet\quad MAIN CONTRIBUTION (V3)}\\[0.35cm]
+  {\fontsize{26}{30}\selectfont\bfseries\color{white} Tamper-Evident Parent\\Evidence Vault}\\[0.55cm]
+  {\normalsize\color{white!75} Stopping extension removal, evidence deletion, and report forgery\\--- completely offline, with zero cloud uploads.}
+\end{frame}
+
+%==============================================================
+% SLIDE 6: WHY BROWSER STORAGE FAILS & THE 4 PILLARS
+%==============================================================
+\begin{frame}{Why Browser Storage Fails --- and Our Four-Pillar Fix}
   \begin{columns}[T]
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snRed!60]{What Happened Before (\texttt{chrome.storage.local})}
-        \footnotesize
-        \begin{itemize}
-          \setlength\itemsep{6pt}
-          \item Flagged chats were saved as \textbf{plain text} inside Chrome storage.
-          \item A child --- or a predator coaching the child --- could \textbf{uninstall the extension in 2 clicks}.
-          \item Pressing \textbf{Clear local incidents} or wiping Chrome data erased all evidence instantly.
-          \item Exported PDFs were \textbf{unsigned} --- anyone could edit text before showing parents or school.
-        \end{itemize}
-      \end{softcard}
-    \end{column}
-    \begin{column}{0.485\textwidth}
-      \begin{accentcard}[snAccent]{Core Security Insight}
-        \footnotesize
-        \textbf{Encryption alone cannot stop deletion.}\\[5pt]
-        Even if a file is strongly encrypted, any user with write access to that folder can simply delete the file.\\[5pt]
-        To protect evidence \textbf{100\% offline}, we must separate \textbf{OS Admin} and \textbf{Child Standard User} permissions.
-      \end{accentcard}
+    \begin{column}{0.45\textwidth}
+      {\scriptsize\bfseries\color{accent} BEFORE: CHROME LOCAL STORAGE}\\[4pt]
+      \begin{itemize}\footnotesize
+        \setlength\itemsep{4.5pt}
+        \item Flagged chats sat as \textbf{plain text} inside \texttt{chrome.storage.local}.
+        \item A child --- or an abuser instructing the child --- could \textbf{uninstall the extension in two clicks}.
+        \item Clicking \textit{Clear local incidents} or clearing browsing data destroyed every record.
+        \item Exported PDFs were \textbf{unsigned} and trivial to alter.
+      \end{itemize}
 
-      \vspace{0.2cm}
-      \begin{softcard}[snGreen!55]{Our V3 Goal}
-        \scriptsize
-        Make evidence \textbf{impossible to erase from the child's account}, \textbf{impossible to read without the parent's key}, and \textbf{impossible to edit without getting caught} --- with zero cloud uploads.
-      \end{softcard}
+      \vspace{0.22cm}
+      {\color{accent}\hrule height 1pt}
+      \vspace{0.14cm}
+      {\footnotesize\bfseries\color{ink} Core Insight: Encryption alone cannot stop deletion.}\\
+      {\scriptsize\color{slate} If the child's OS account owns the folder, they can delete encrypted files too. We must separate \textbf{OS Admin} and \textbf{Standard User} rights.}
+    \end{column}
+
+    \begin{column}{0.03\textwidth}
+      \centering
+      \textcolor{rulegray}{\rule{0.5pt}{5.2cm}}
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+      {\scriptsize\bfseries\color{ink} AFTER: FOUR SIMPLE SECURITY PILLARS}\\[4pt]
+      \begin{enumerate}\footnotesize
+        \setlength\itemsep{6pt}
+        \item \textbf{OS Admin Chrome Lock}\\
+              {\scriptsize\color{slate} Enterprise policies block uninstall, Incognito, and DevTools, and pass only the parent's public key.}
+        \item \textbf{One-Way Browser Sealing}\\
+              {\scriptsize\color{slate} Flagged chats are encrypted immediately inside Chrome. Banners stay visible, but plaintext and \textit{Clear} disappear.}
+        \item \textbf{Write-Only Admin Daemon + Hash Chain}\\
+              {\scriptsize\color{slate} A \texttt{root}/\texttt{SYSTEM} Go service appends ciphertext to an admin-only SHA-256 hash chain with a tamper anchor.}
+        \item \textbf{Offline Parent Audit \& Signed PDF}\\
+              {\scriptsize\color{slate} Parent decrypts offline with a private key and exports a PKCS\#7 signed PDF that catches any 1-byte edit.}
+      \end{enumerate}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 6: THE FOUR CORE PILLARS (MAIN OVERVIEW)
-%==============================================================
-\begin{frame}{Our Solution: The Four Pillars of the Parent Evidence Vault}
-  \vspace{0.15cm}
-  \begin{center}
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}
-    \node[pillar=snBlue] (p1) {
-      \vspace{0.25cm}
-      {\footnotesize\bfseries\color{snBlue}Admin Chrome Lock}\\[5pt]
-      {\scriptsize Chrome Enterprise Policies written by OS Admin.}\\[6pt]
-      {\fontsize{6.8}{8.5}\selectfont\color{snMuted}
-        $\bullet$ Force-installs extension\\
-        $\bullet$ Removes Uninstall / Off\\
-        $\bullet$ Blocks Incognito \& DevTools\\
-        $\bullet$ Pushes only Public Key}
-    };
-    \node[pillarnum=snBlue] at (p1.north) {1};
-
-    \node[pillar=snAmber, right=0.45cm of p1] (p2) {
-      \vspace{0.25cm}
-      {\footnotesize\bfseries\color{snAmber}One-Way Sealing}\\[5pt]
-      {\scriptsize Pure Web Crypto API inside Chrome (\texttt{crypto\_seal.js}).}\\[6pt]
-      {\fontsize{6.8}{8.5}\selectfont\color{snMuted}
-        $\bullet$ Locks chat with Parent Public Key\\
-        $\bullet$ Browser cannot read it back\\
-        $\bullet$ Live chat banners stay ON\\
-        $\bullet$ Popup hides text \& Clear}
-    };
-    \node[pillarnum=snAmber] at (p2.north) {2};
-
-    \node[pillar=snRed, right=0.45cm of p2] (p3) {
-      \vspace{0.25cm}
-      {\footnotesize\bfseries\color{snRed}Admin Vault + Chain}\\[5pt]
-      {\scriptsize Go \texttt{root}/\texttt{SYSTEM} daemon + Native Messaging bridge.}\\[6pt]
-      {\fontsize{6.8}{8.5}\selectfont\color{snMuted}
-        $\bullet$ Strictly write-only IPC\\
-        $\bullet$ Admin-only folder (\texttt{0700})\\
-        $\bullet$ SHA-256 hash chain + sig\\
-        $\bullet$ Anchor catches tail cuts}
-    };
-    \node[pillarnum=snRed] at (p3.north) {3};
-
-    \node[pillar=snGreen, right=0.45cm of p3] (p4) {
-      \vspace{0.25cm}
-      {\footnotesize\bfseries\color{snGreen}Signed PDF Export}\\[5pt]
-      {\scriptsize Offline Parent CLI (\texttt{verify}, \texttt{export}, \texttt{verify-pdf}).}\\[6pt]
-      {\fontsize{6.8}{8.5}\selectfont\color{snMuted}
-        $\bullet$ Private key stays on USB\\
-        $\bullet$ Verifies full hash chain\\
-        $\bullet$ Embeds PKCS\#7 signature\\
-        $\bullet$ Catches any 1-byte edit}
-    };
-    \node[pillarnum=snGreen] at (p4.north) {4};
-
-    \draw[pillararr] (p1) -- (p2);
-    \draw[pillararr] (p2) -- (p3);
-    \draw[pillararr] (p3) -- (p4);
-  \end{tikzpicture}%
-  }
-  \end{center}
-
-  \vspace{0.2cm}
-  \centering{\scriptsize\color{snMuted} Zero login required \;\textbar\; Zero cloud uploads \;\textbar\; Cross-platform Go binary (\texttt{surakshanet-vault}) for Linux, Windows, and macOS.}
-\end{frame}
-
-%==============================================================
-% SLIDE 7: END-TO-END ARCHITECTURE (3 SECURITY ZONES)
+% SLIDE 7: SYSTEM ARCHITECTURE (MINIMALIST RECTILINEAR DIAGRAM)
 %==============================================================
 \begin{frame}{System Architecture Across Three Trust Zones}
+  \vspace{0.02cm}
   \begin{center}
-  \resizebox{0.98\textwidth}{!}{%
+  \resizebox{0.93\textwidth}{!}{%
   \begin{tikzpicture}
     % Zone 1
-    \node[archbox=blue!10, text width=2.9cm] (chrome) {\textbf{Chrome (Locked)}\\{\fontsize{6.6}{7.8}\selectfont Force-installed policy\\DevTools \& Incognito OFF}};
-    \node[archbox=orange!14, text width=3.0cm, right=0.5cm of chrome] (ext) {\textbf{SurakshaNet MV3}\\{\fontsize{6.6}{7.8}\selectfont ONNX INT8 + Gated Window\\Holds \textbf{only} $PK_{\text{parent}}$\\Banners ON, Clear OFF}};
-    \node[archbox=yellow!18, text width=2.75cm, right=0.5cm of ext] (seal) {\textbf{\texttt{crypto\_seal.js}}\\{\fontsize{6.6}{7.8}\selectfont Web Crypto Sealed Box\\ECDH + AES-256-GCM\\Queues ciphertext offline}};
-    \node[archbox=gray!15, text width=2.75cm, right=0.5cm of seal] (bridge) {\textbf{Native Bridge}\\{\fontsize{6.6}{7.8}\selectfont \texttt{surakshanet-vault bridge}\\Forwards frames only\\No file write access}};
+    \node[sysbox, text width=2.85cm] (chrome) {\textbf{Chrome (Policy-Locked)}\\[2pt]{\color{slate}Force-installed policy\\DevTools \& Incognito OFF}};
+    \node[sysbox, text width=2.95cm, right=0.55cm of chrome] (ext) {\textbf{SurakshaNet MV3}\\[2pt]{\color{slate}INT8 ONNX + Gated Window\\Holds \textbf{only} $PK_{\text{parent}}$\\Banners ON, Clear OFF}};
+    \node[sysbox, text width=2.75cm, right=0.55cm of ext] (seal) {\textbf{\texttt{crypto\_seal.js}}\\[2pt]{\color{slate}Web Crypto Sealed Box\\ECDH + AES-256-GCM\\Queues blobs if offline}};
+    \node[sysbox, text width=2.75cm, right=0.55cm of seal] (bridge) {\textbf{Native Bridge}\\[2pt]{\color{slate}\texttt{surakshanet-vault bridge}\\Forwards frames only\\No vault file access}};
 
     \begin{scope}[on background layer]
-      \node[archzone=blue, fit=(chrome)(ext)(seal)(bridge),
-            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=snBlue, anchor=west, xshift=3mm]north west:Zone 1: Child's Standard (Non-Admin) OS Account --- Untrusted / No Delete Rights}] (z1) {};
+      \node[syszone, fit=(chrome)(ext)(seal)(bridge),
+            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=ink, anchor=west, xshift=3mm]north west:Zone 1: Child's Standard (Non-Admin) OS Account --- Untrusted / No Delete Rights}] (z1) {};
     \end{scope}
 
-    % Boundary
+    % Kernel boundary
     \coordinate (bL) at ($(z1.south west)+(0,-0.62cm)$);
     \coordinate (bR) at ($(z1.south east)+(0,-0.62cm)$);
-    \draw[snRed, very thick, densely dashed] (bL) -- (bR)
-      node[midway, fill=white, font=\scriptsize\bfseries, text=snRed, inner sep=2.5pt]
+    \draw[accent, thick, dashed] (bL) -- (bR)
+      node[midway, fill=white, font=\scriptsize\bfseries, text=accent, inner sep=3pt]
       {OS KERNEL PRIVILEGE BOUNDARY (Local Socket / Pipe --- Strictly Write-Only Commands)};
 
     % Zone 2 & 3
-    \node[archbox=red!10, text width=3.0cm, below=1.65cm of chrome] (ipc) {\textbf{Write-Only Daemon}\\{\fontsize{6.6}{7.8}\selectfont Runs as \texttt{root} / \texttt{SYSTEM}\\Allows: \texttt{APPEND}, \texttt{HEARTBEAT}\\Watchdog logs kill gaps}};
-    \node[archbox=purple!11, text width=2.9cm, right=0.5cm of ipc] (chain) {\textbf{Append-Only Vault}\\{\fontsize{6.6}{7.8}\selectfont \texttt{vault.jsonl} (\texttt{0700 root})\\SHA-256 hash chain\\+ Ed25519 daemon sig}};
-    \node[archbox=teal!13, text width=2.75cm, right=0.5cm of chain] (anchor) {\textbf{Tamper Anchor}\\{\fontsize{6.6}{7.8}\selectfont Stores record count\\+ cumulative SHA-256\\(Admin file / opt.\ TPM 2.0)}};
-    \node[archbox=green!13, text width=2.75cm, right=0.5cm of anchor] (parent) {\textbf{Parent Offline CLI}\\{\fontsize{6.6}{7.8}\selectfont Holds $SK_{\text{parent}}$ (USB)\\Verifies chain + anchor\\Exports PKCS\#7 PDF}};
+    \node[sysboxacc, text width=2.9cm, below=1.65cm of chrome] (ipc) {\textbf{Write-Only Daemon}\\[2pt]{\color{slate}Runs as \texttt{root} / \texttt{SYSTEM}\\Allows \texttt{APPEND}, \texttt{HEARTBEAT}\\Watchdog logs kill gaps}};
+    \node[sysbox, text width=2.9cm, right=0.55cm of ipc] (chain) {\textbf{Append-Only Vault}\\[2pt]{\color{slate}\texttt{vault.jsonl} (\texttt{0700 root})\\SHA-256 hash chain\\+ Ed25519 signature}};
+    \node[sysbox, text width=2.75cm, right=0.55cm of chain] (anchor) {\textbf{Tamper Anchor}\\[2pt]{\color{slate}Record count + running\\cumulative SHA-256\\(Admin file / opt.\ TPM 2.0)}};
+    \node[sysbox, text width=2.75cm, right=0.55cm of anchor] (parent) {\textbf{Parent Offline CLI}\\[2pt]{\color{slate}Holds $SK_{\text{parent}}$ offline\\Verifies chain + anchor\\Exports PKCS\#7 PDF}};
 
     \begin{scope}[on background layer]
-      \node[archzone=red, fit=(ipc)(chain)(anchor),
-            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=snRed, anchor=west, xshift=3mm]south west:Zone 2: Privileged Admin Service (\texttt{root} / \texttt{SYSTEM})}] (z2) {};
-      \node[archzone=snGreen, fit=(parent),
-            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=snGreen, anchor=center]south:Zone 3: Parent Admin}] (z3) {};
+      \node[syszone, draw=accent!75, fit=(ipc)(chain)(anchor),
+            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=accent, anchor=west, xshift=3mm]south west:Zone 2: Privileged Admin Service (\texttt{root} / \texttt{SYSTEM})}] (z2) {};
+      \node[syszone, fit=(parent),
+            label={[fill=white, inner sep=2pt, font=\scriptsize\bfseries, text=ink, anchor=center]south:Zone 3: Parent Admin}] (z3) {};
     \end{scope}
 
-    \draw[archarr] (chrome) -- (ext);
-    \draw[archarr] (ext) -- (seal);
-    \draw[archarr] (seal) -- (bridge);
-    \draw[archarr] (bridge.south) -- ++(0,-0.36cm) -| (ipc.north);
-    \draw[archarr] (ipc) -- (chain);
-    \draw[archarr] (chain) -- (anchor);
-    \draw[archarr] (anchor) -- (parent);
+    \draw[sysarr] (chrome) -- (ext);
+    \draw[sysarr] (ext) -- (seal);
+    \draw[sysarr] (seal) -- (bridge);
+    \draw[sysarr, accent] (bridge.south) -- ++(0,-0.36cm) -| (ipc.north);
+    \draw[sysarr] (ipc) -- (chain);
+    \draw[sysarr] (chain) -- (anchor);
+    \draw[sysarr] (anchor) -- (parent);
   \end{tikzpicture}%
   }
   \end{center}
+  \vspace{0.15cm}
+  {\scriptsize\color{muted}\centering Single cross-platform Go binary (\texttt{surakshanet-vault}) compiled for Linux (\texttt{amd64}), Windows (\texttt{amd64}), and macOS (\texttt{arm64}).\par}
 \end{frame}
 
 %==============================================================
-% SLIDE 8: PILLAR 1 - ADMIN-LOCKED CHROME EXTENSION
+% SLIDE 8: PILLAR 1 — OS ADMIN CHROME LOCK (REAL MAC MDM SHOTS)
 %==============================================================
-\begin{frame}{Pillar 1: Blocking Extension Removal with OS Admin Policies}
-  \begin{columns}[T]
-    \begin{column}{0.51\textwidth}
-      \textbf{\footnotesize\color{snDark}How We Stop 2-Click Uninstall}
-      \begin{itemize}\scriptsize
-        \setlength\itemsep{5pt}
-        \item Parent runs our Admin installer once (\texttt{install.sh} on Linux, \texttt{install.ps1} on Windows).
-        \item Installer writes \textbf{Chrome Enterprise Policies} to admin-only OS paths:
-          \begin{itemize}\fontsize{6.5}{7.8}\selectfont
-            \item Linux: \nolinkurl{/etc/opt/chrome/policies/managed/surakshanet.json}
-            \item Windows: \texttt{HKLM\textbackslash SOFTWARE\textbackslash Policies\textbackslash Google\textbackslash Chrome}
-          \end{itemize}
-        \item Child uses a \textbf{Standard (Non-Admin) OS account}, so the OS blocks editing or deleting these policy files.
-      \end{itemize}
-
-      \vspace{0.15cm}
-      \begin{softcard}[snBlue!45]{Managed Config Given to Chrome}
-        \fontsize{6.8}{8.2}\selectfont
-        \texttt{\{"lockMode": true, "parentPublicKey": "<base64>", "heartbeatSec": 60\}}\\[2pt]
-        The parent's \textbf{private key never enters the browser}.
-      \end{softcard}
-    \end{column}
-    \begin{column}{0.45\textwidth}
-      \begin{softcard}[snRed!55]{Normal User Install (Before)}
-        \scriptsize
-        $\times$ \textbf{Remove} button always visible\\[2pt]
-        $\times$ \textbf{ON / OFF} switch can be toggled off\\[2pt]
-        $\times$ Incognito window bypasses extension\\[2pt]
-        $\times$ DevTools can inspect or clear storage
-      \end{softcard}
-
-      \vspace{0.2cm}
-
-      \begin{softcard}[snGreen!60]{Admin Policy Lock (After)}
-        \scriptsize
-        \textbf{\color{snGreen}\checkmark} \texttt{ExtensionInstallForcelist} hides Remove button \& locks switch ON\\[2pt]
-        \textbf{\color{snGreen}\checkmark} Shows \textit{``Installed by your administrator''}\\[2pt]
-        \textbf{\color{snGreen}\checkmark} \texttt{IncognitoModeAvailability = 1} (OFF)\\[2pt]
-        \textbf{\color{snGreen}\checkmark} \texttt{DeveloperToolsAvailability = 2} (OFF)
-      \end{softcard}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-%==============================================================
-% SLIDE 9: PILLAR 2 - ONE-WAY SEALING & POPUP COMPARISON
-%==============================================================
-\begin{frame}{Pillar 2: One-Way Browser Encryption \& Locked Popup UI}
+\begin{frame}{Pillar 1: Locking Chrome with OS Administrator Policies}
   \begin{columns}[c]
-    \begin{column}{0.43\textwidth}
-      \textbf{\footnotesize\color{snDark}Lock Inside Chrome, Read Only by Parent}
-      \begin{itemize}\scriptsize
-        \setlength\itemsep{5pt}
-        \item \texttt{extension\_v2/crypto\_seal.js} uses browser built-in \textbf{Web Crypto API} (zero external packages).
-        \item Each flagged incident gets a fresh one-time key (\textbf{ECDH P-256 + HKDF-SHA256 + AES-256-GCM}) combined with $PK_{\text{parent}}$.
-        \item Temporary key is discarded immediately --- \textbf{even Chrome cannot decrypt what it just sealed}.
-        \item \textbf{WhatsApp warning banners still stay ON}, while the popup hides all plain text and removes the \textit{Clear} button.
-        \item If daemon is offline, only encrypted blobs are queued locally.
+    \begin{column}{0.49\textwidth}
+      {\small\bfseries\color{ink} How Extension Removal Is Blocked}
+      \vspace{0.1cm}
+      \begin{itemize}\footnotesize
+        \setlength\itemsep{4.5pt}
+        \item Parent runs the installer once as \textbf{OS Admin} (\texttt{install.sh}, \texttt{install.ps1}, or macOS profile).
+        \item Writes machine-level \textbf{Chrome Policies}:
+          \begin{itemize}\scriptsize
+            \setlength\itemsep{2pt}
+            \item \texttt{ExtensionInstallForcelist} --- locks extension ON.
+            \item \texttt{IncognitoModeAvailability = 1} --- blocks Incognito.
+            \item \texttt{DeveloperToolsAvailability = 2} --- blocks DevTools.
+          \end{itemize}
+        \item \texttt{chrome.storage.managed} pushes \texttt{lockMode: true} and \textbf{only} the parent's public key ($PK_{\text{parent}}$).
+        \item Editing or removing the profile requires the \textbf{Admin password}.
       \end{itemize}
     \end{column}
-    \begin{column}{0.54\textwidth}
+    \begin{column}{0.47\textwidth}
       \centering
-      \fcolorbox{snCardBorder}{white}{\includegraphics[width=0.88\textwidth]{assets/popup_comparison.png}}\\[2pt]
-      {\fontsize{6.4}{7.4}\selectfont\color{snMuted} Real Chrome screenshots: Standalone (left) vs.\ Parent-Locked Vault (right).}
+      \shot{height=3.0cm}{assets/mac_mdm_password.jpg}\\[5pt]
+      \shot{height=2.05cm}{assets/mac_mdm_profile.jpg}\\[3pt]
+      {\scriptsize\color{muted} Live macOS test: Admin password lock (top) and installed SurakshaNet Chrome Parent Policy (bottom).}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 10: PILLAR 3A - BRIDGE & WRITE-ONLY ADMIN DAEMON
+% SLIDE 9: PILLAR 1 LIVE PROOF (chrome://policy + DEVTOOLS BLOCKED)
 %==============================================================
-\begin{frame}{Pillar 3 (Part A): Why We Split Bridge and Admin Daemon}
-  \begin{columns}[T]
-    \begin{column}{0.53\textwidth}
-      \textbf{\footnotesize\color{snDark}Crossing the OS Privilege Boundary Safely}
-      \begin{itemize}\scriptsize
-        \setlength\itemsep{5.5pt}
-        \item Chrome spawns Native Messaging helpers under the \textbf{child's user account}. If that helper saved files directly, the child could delete them.
-        \item So we built one Go binary (\texttt{surakshanet-vault}) with two roles:
-          \begin{enumerate}\fontsize{6.8}{8.2}\selectfont
-            \setlength\itemsep{3pt}
-            \item \textbf{\texttt{bridge} (Postman):} Reads Chrome's length-prefixed JSON and forwards ciphertext over a local socket. Has \textbf{zero file access}.
-            \item \textbf{\texttt{daemon} (Vault Keeper):} Runs as \textbf{\texttt{root}} (Linux \texttt{systemd}) or \textbf{\texttt{SYSTEM}} (Windows) and owns the locked \texttt{0700} / NTFS vault folder.
-          \end{enumerate}
-        \item \textbf{Heartbeat Watchdog:} If someone kills Chrome's bridge or stops the extension, the daemon logs a signed \texttt{TAMPER\_HEARTBEAT\_GAP} alert.
+\begin{frame}{Pillar 1 Live Verification on macOS Chrome}
+  \begin{columns}[c]
+    \begin{column}{0.56\textwidth}
+      \centering
+      \shot{width=\textwidth}{assets/mac_chrome_policy.jpg}\\[4pt]
+      {\scriptsize\color{muted} Live \texttt{chrome://policy}: Machine-level Mandatory policies active.}
+    \end{column}
+    \begin{column}{0.41\textwidth}
+      \centering
+      \shot{width=\textwidth}{assets/mac_devtools_blocked.jpg}\\[4pt]
+      {\scriptsize\color{muted} Live Chrome alert when user attempts to open DevTools.}
+
+      \vspace{0.35cm}
+      \raggedright
+      {\scriptsize\bfseries\color{ink} Real-World Observation:}\\
+      {\scriptsize\color{slate} On non-domain macOS/Windows, Chrome accepts \texttt{DeveloperTools} and \texttt{Incognito} locks locally (\texttt{OK}), while \texttt{ExtensionInstallForcelist} requires a Chrome Web Store ID (an Unlisted listing resolves the warning shown on the left).}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==============================================================
+% SLIDE 10: PILLAR 2 — ONE-WAY SEALING + REAL MAC LOCKED POPUP
+%==============================================================
+\begin{frame}{Pillar 2: One-Way Browser Encryption and Locked Popup UI}
+  \begin{columns}[c]
+    \begin{column}{0.54\textwidth}
+      {\small\bfseries\color{ink} Sealed Inside Chrome, Readable Only by Parent}
+      \vspace{0.15cm}
+      \begin{itemize}\footnotesize
+        \setlength\itemsep{6.5pt}
+        \item \texttt{extension\_v2/crypto\_seal.js} uses browser built-in \textbf{Web Crypto API} (zero external packages).
+        \item For each flagged message, Chrome creates a one-time \textbf{ECDH P-256} keypair, combines it with $PK_{\text{parent}}$ via \textbf{HKDF-SHA256}, and encrypts with \textbf{AES-256-GCM}.
+        \item The temporary private key is discarded immediately --- \textbf{not even the extension can read the message back}.
+        \item \textbf{WhatsApp warning banners remain live}, while the popup removes plain chat text and the \textit{Clear} button.
+        \item If the daemon is momentarily offline, Chrome buffers \textit{only encrypted blobs}.
       \end{itemize}
     \end{column}
-    \begin{column}{0.43\textwidth}
-      \begin{softcard}[snGreen!60]{Allowed IPC Commands (Write-Only)}
-        \scriptsize
-        \pill{snGreen}{ALLOW} \;\texttt{APPEND\_INCIDENT}\\
-        {\fontsize{6.5}{7.6}\selectfont Appends one sealed ciphertext record.}\\[4pt]
-        \pill{snGreen}{ALLOW} \;\texttt{HEARTBEAT}\\
-        {\fontsize{6.5}{7.6}\selectfont Proves extension is still running.}\\[4pt]
-        \pill{snGreen}{ALLOW} \;\texttt{STATUS}\\
-        {\fontsize{6.5}{7.6}\selectfont Returns counts \& sequence number only.}
-      \end{softcard}
-
-      \vspace{0.18cm}
-
-      \begin{softcard}[snRed!60]{Blocked IPC Commands}
-        \scriptsize
-        \pill{snRed}{DENY} \;\texttt{DELETE} / \texttt{DELETE\_ALL} / \texttt{CLEAR}\\[3pt]
-        \pill{snRed}{DENY} \;\texttt{READ} / \texttt{LIST} / \texttt{EXPORT}\\[4pt]
-        {\fontsize{6.5}{7.6}\selectfont Never exposed over IPC --- rejected immediately with \textit{``forbidden action''}.}
-      \end{softcard}
+    \begin{column}{0.42\textwidth}
+      \centering
+      \shot{height=5.6cm}{assets/mac_popup_locked.jpg}\\[3pt]
+      {\scriptsize\color{muted} Live MacBook Chrome popup: 28 flagged, LOCKED, Chain Seq \#74, zero plaintext.}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 11: PILLAR 3B - APPEND-ONLY HASH CHAIN & ANCHOR
+% SLIDE 11: PILLAR 3 — WRITE-ONLY DAEMON & HASH CHAIN
 %==============================================================
-\begin{frame}{Pillar 3 (Part B): Append-Only Hash Chain \& Tamper Anchor}
+\begin{frame}{Pillar 3: Write-Only Admin Daemon and Hash-Chained Log}
+  \vspace{0.05cm}
   \begin{center}
-  \resizebox{\textwidth}{!}{%
+  \resizebox{0.99\textwidth}{!}{%
   \begin{tikzpicture}
-    \node[chainrec=snPurple] (r1) {\textbf{\color{snPurple}Record \#1 (Init)}\\[3pt]
-      \texttt{seq: 1}, \texttt{prev: 0000..}\\
-      UTC time + Caller UID/PID\\
-      $H_1 = \text{SHA-256}(\text{rec}_1)$\\
-      Sig: $\text{Ed25519}(H_1)$};
+    \node[flowbox, text width=3.0cm] (r1) {\textbf{Record \#1 (Init)}\\[2pt]{\color{slate}\texttt{seq: 1}, \texttt{prev: 000..}\\UTC time + UID/PID\\$H_1 = \text{SHA-256}(\text{rec}_1)$}};
+    \node[flowbox, text width=3.0cm, right=0.55cm of r1] (r2) {\textbf{Record \#2 (Incident)}\\[2pt]{\color{slate}\texttt{seq: 2}, \texttt{prev: $H_1$}\\Encrypted Sealed Box\\$H_2$, $\text{Ed25519}(H_2)$}};
+    \node[flowbox, text width=2.95cm, right=0.55cm of r2] (r3) {\textbf{Record \#3 (Incident)}\\[2pt]{\color{slate}\texttt{seq: 3}, \texttt{prev: $H_2$}\\Encrypted Sealed Box\\$H_3$, $\text{Ed25519}(H_3)$}};
+    \node[sysboxacc, text width=2.95cm, right=1.0cm of r3] (anc) {\textbf{Tamper Anchor}\\[2pt]{\color{slate}Count = \texttt{3}\\$C_3 = \text{SHA-256}(C_2 \Vert H_3)$\\Admin file (+ opt.\ TPM 2.0)}};
 
-    \node[chainrec=snPurple, right=0.55cm of r1] (r2) {\textbf{\color{snPurple}Record \#2 (Incident)}\\[3pt]
-      \texttt{seq: 2}, \texttt{prev: $H_1$}\\
-      Encrypted Sealed Box\\
-      $H_2 = \text{SHA-256}(\text{rec}_2)$\\
-      Sig: $\text{Ed25519}(H_2)$};
+    \draw[sysarr] (r1) -- node[above, font=\scriptsize]{$H_1$} (r2);
+    \draw[sysarr] (r2) -- node[above, font=\scriptsize]{$H_2$} (r3);
+    \draw[sysarr, accent] (r3) -- node[above, font=\scriptsize\color{accent}]{extend} (anc);
 
-    \node[chainrec=snPurple, right=0.55cm of r2] (r3) {\textbf{\color{snPurple}Record \#3 (Incident)}\\[3pt]
-      \texttt{seq: 3}, \texttt{prev: $H_2$}\\
-      Encrypted Sealed Box\\
-      $H_3 = \text{SHA-256}(\text{rec}_3)$\\
-      Sig: $\text{Ed25519}(H_3)$};
-
-    \node[chainrec=snBlue, right=0.55cm of r3, text width=3.1cm] (anc) {\textbf{\color{snBlue}Tamper Anchor}\\[3pt]
-      Total count = \texttt{3}\\
-      Cumulative hash:\\
-      $C_3 = \text{SHA-256}(C_2 \Vert H_3)$\\
-      {\fontsize{6.3}{7.3}\selectfont Admin file (+ opt.\ TPM 2.0)}};
-
-    \draw[chainarr] (r1) -- node[above, font=\scriptsize]{$H_1$} (r2);
-    \draw[chainarr] (r2) -- node[above, font=\scriptsize]{$H_2$} (r3);
-    \draw[chainarr, snBlue] (r3) -- node[above, font=\scriptsize\color{snBlue}]{extend} (anc);
-
-    \node[font=\scriptsize\bfseries, text=snRed, below=0.22cm of r1] {Edit mid-log $\Rightarrow$ Hash \& Sig fail};
-    \node[font=\scriptsize\bfseries, text=snRed, below=0.22cm of r2] {Delete row $\Rightarrow$ \texttt{seq}/\texttt{prev} breaks};
-    \node[font=\scriptsize\bfseries, text=snRed, below=0.22cm of anc] {Cut last lines $\Rightarrow$ Anchor mismatch};
+    \node[font=\fontsize{6.6}{7.6}\selectfont, text=accent, below=0.18cm of r1] {Edit mid-log $\rightarrow$ hash fails};
+    \node[font=\fontsize{6.6}{7.6}\selectfont, text=accent, below=0.18cm of r2] {Delete row $\rightarrow$ chain breaks};
+    \node[font=\fontsize{6.6}{7.6}\selectfont, text=accent, below=0.18cm of anc] {Cut last lines $\rightarrow$ anchor mismatch};
   \end{tikzpicture}%
   }
   \end{center}
+
+  \vspace{0.35cm}
+  {\color{rulegray}\hrule height 0.5pt}
+  \vspace{0.25cm}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      {\footnotesize\bfseries\color{ink} Why Bridge and Daemon Are Separate}\\[4pt]
+      \begin{itemize}\scriptsize
+        \setlength\itemsep{4pt}
+        \item Chrome spawns \texttt{bridge} under the child's account; \texttt{bridge} only relays frames and has no file access.
+        \item \texttt{daemon} runs as \texttt{root} / \texttt{SYSTEM} and owns the locked \texttt{0700} / NTFS vault folder.
+        \item IPC accepts only \texttt{APPEND\_INCIDENT}, \texttt{HEARTBEAT}, and \texttt{STATUS} --- \textbf{no \texttt{READ} or \texttt{DELETE} command exists}.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      {\footnotesize\bfseries\color{ink} How Tampering and Kills Are Caught}\\[4pt]
+      \begin{itemize}\scriptsize
+        \setlength\itemsep{4pt}
+        \item \texttt{vault.jsonl} is written via strict \texttt{O\_APPEND} + \texttt{fsync} (plus Linux \texttt{chattr +a} when supported).
+        \item Every record carries a SHA-256 link to the previous line and an Ed25519 daemon signature.
+        \item A heartbeat watchdog logs \texttt{TAMPER\_HEARTBEAT\_GAP} if anyone stops the extension or kills the bridge.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==============================================================
+% SLIDE 12: PILLAR 3 LIVE PROOF ON MACBOOK TERMINAL
+%==============================================================
+\begin{frame}{Pillar 3 Live Proof: Permission Lock and 1-Char Log Tamper}
+  \centering
+  \shot{height=2.95cm}{assets/mac_term_perm_verify.jpg}\\[2pt]
+  {\scriptsize\color{muted} \textbf{Test 1 (Access Lock):} Standard user gets \texttt{Permission denied}; Admin \texttt{verify} confirms \texttt{VERIFIED (INTACT)}.}
 
   \vspace{0.2cm}
-  \begin{columns}[T]
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snCardBorder]{How Files Are Protected on Disk}
-        \scriptsize
-        \texttt{vault.jsonl} is opened in strict \texttt{O\_APPEND} + \texttt{fsync} mode inside an admin-only folder (\texttt{0700 root} on Linux, locked NTFS ACLs on Windows), plus kernel append-only flag (\texttt{chattr +a}) when supported.
-      \end{softcard}
-    \end{column}
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snBlue!45]{Stopping Tail Truncation (Last-Line Cuts)}
-        \scriptsize
-        A normal hash chain cannot catch someone cutting the last few lines. Our \textbf{Tamper Anchor} tracks total count + running cumulative digest using an admin-only anchor file (plus optional \textbf{TPM 2.0} hardware support).
-      \end{softcard}
-    \end{column}
-  \end{columns}
+
+  \shot{height=2.2cm}{assets/mac_term_tamper_log.jpg}\\[2pt]
+  {\scriptsize\color{muted} \textbf{Test 2 (1-Char Edit):} Editing 1 char on line 5 via \texttt{sed} triggers \texttt{TAMPERING DETECTED: content hash mismatch}.}
 \end{frame}
 
 %==============================================================
-% SLIDE 12: PILLAR 4 - OFFLINE PARENT AUDIT & SIGNED PDF
+% SLIDE 13: PILLAR 4 — OFFLINE PARENT EXPORT & SIGNED PDF
 %==============================================================
-\begin{frame}{Pillar 4: Offline Parent Export \& Digitally Signed PDF}
+\begin{frame}{Pillar 4: Offline Parent Audit and Digitally Signed PDF}
   \begin{columns}[c]
-    \begin{column}{0.50\textwidth}
-      \textbf{\footnotesize\color{snDark}Simple 3-Command Offline Review}
-      \begin{enumerate}\scriptsize
-        \setlength\itemsep{5pt}
+    \begin{column}{0.49\textwidth}
+      {\small\bfseries\color{ink} Three-Step Offline Parent Review}
+      \vspace{0.08cm}
+      \begin{enumerate}\footnotesize
+        \setlength\itemsep{4.5pt}
         \item \textbf{\texttt{surakshanet-vault verify}}\\
-              Checks every record's sequence number, SHA-256 chain, Ed25519 signature, and anchor match.
+              Reads \texttt{vault.jsonl} directly as Admin and checks every sequence number, SHA-256 link, Ed25519 signature, and anchor match.
         \item \textbf{\texttt{surakshanet-vault export}}\\
-              Parent plugs in USB with \texttt{parent.key.json} (passphrase + \texttt{scrypt}), decrypts all English/Hindi/Hinglish logs, and creates a signed PDF.
+              Parent supplies offline \texttt{parent.key.json} (passphrase + \texttt{scrypt}), decrypts all multilingual incidents, and writes a signed PDF.
         \item \textbf{\texttt{surakshanet-vault verify-pdf}}\\
-              Any teacher, school, or authority checks the PDF using \texttt{parent.crt.pem}.
+              Any teacher, school, or authority verifies the report using the public certificate \texttt{parent.crt.pem}.
       \end{enumerate}
 
-      \vspace{0.15cm}
-      \begin{accentcard}[snGreen]{1-Byte Tamper Protection (PKCS\#7 / CMS)}
-        \scriptsize
-        The signature covers the \textbf{entire PDF byte-by-byte} (\texttt{/ByteRange} from byte 0 to end). Changing even \textbf{one single byte} makes verification fail immediately.
-      \end{accentcard}
+      \vspace{0.16cm}
+      {\color{rulegray}\hrule height 0.5pt}
+      \vspace{0.12cm}
+      {\scriptsize\color{slate} Uses ISO 32000-1 \textbf{PKCS\#7 / CMS detached signatures} covering the full PDF byte range (\texttt{/ByteRange} from byte 0 to EOF).}
     \end{column}
-    \begin{column}{0.46\textwidth}
+    \begin{column}{0.47\textwidth}
       \centering
-      \fcolorbox{snCardBorder}{white}{\includegraphics[width=0.95\textwidth]{assets/signed_pdf_preview.png}}\\[2pt]
-      {\fontsize{6.5}{7.6}\selectfont\color{snMuted} Rendered page of an actual exported PKCS\#7 signed PDF.}
+      \shot{width=0.95\textwidth}{assets/signed_pdf_preview.png}\\[4pt]
+      {\scriptsize\color{muted} Rendered page of an exported PKCS\#7 signed evidence report.}
     \end{column}
   \end{columns}
 \end{frame}
 
 %==============================================================
-% SLIDE 13: LIVE PROOF 1 - E2E VERIFICATION & EXPORT
+% SLIDE 14: PILLAR 4 LIVE PROOF ON MACBOOK TERMINAL
 %==============================================================
-\begin{frame}{Live Execution Proof 1: Chain Verify, Decrypt \& Signed PDF}
+\begin{frame}{Pillar 4 Live Proof: Valid Signature vs.\ 1-Byte PDF Tamper}
   \centering
-  \includegraphics[width=0.79\textwidth]{assets/terminal_e2e_verify.png}\\[0.2cm]
-  \begin{columns}[T]
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snGreen}{STEP 1} \;\textbf{Chain Intact}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} 5 records verified against anchor}}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snBlue}{STEP 2} \;\textbf{Decrypted + Signed}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} 3 multilingual incidents exported}}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snAccent}{STEP 3} \;\textbf{PKCS\#7 Valid}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} Full \texttt{/ByteRange} matches certificate}}
-    \end{column}
-  \end{columns}
+  \shot{width=0.84\textwidth}{assets/mac_term_pdf_ok.jpg}\\[3pt]
+  {\scriptsize\color{muted} \textbf{Original Exported PDF:} \texttt{verify-pdf} confirms valid signer (\texttt{26aeb710ead32b12}) and full \texttt{/ByteRange [0 510 16896 16578]}.}
+
+  \vspace{0.32cm}
+
+  \shot{width=0.84\textwidth}{assets/mac_term_pdf_tamper.jpg}\\[3pt]
+  {\scriptsize\color{muted} \textbf{After Flipping 1 Byte (\texttt{dd} at offset 20{,}000):} Verification fails with \texttt{pkcs7: Message digest mismatch}.}
+
+  \vspace{0.22cm}
+  {\scriptsize\color{slate} Also verified: IPC \texttt{DELETE\_ALL} is rejected (\texttt{forbidden action}), and cutting the last log line triggers \texttt{TAIL TRUNCATION DETECTED}.}
 \end{frame}
 
 %==============================================================
-% SLIDE 14: LIVE PROOF 2 - THREE TAMPER ATTACKS CAUGHT
+% SLIDE 15: SECURITY SUMMARY & REAL LATENCY BENCHMARKS
 %==============================================================
-\begin{frame}{Live Execution Proof 2: Three Simulated Attacks Caught}
-  \centering
-  \includegraphics[width=0.79\textwidth]{assets/terminal_tamper_attacks.png}\\[0.2cm]
-  \begin{columns}[T]
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snRed}{ATTACK 1} \;\textbf{IPC Wipe}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} \texttt{DELETE\_ALL} blocked by write-only daemon}}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snRed}{ATTACK 2} \;\textbf{1-Byte PDF Edit}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} Caught via SHA-256 PKCS\#7 mismatch}}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \centering{\scriptsize\pill{snRed}{ATTACK 3} \;\textbf{Log Tail Cut}\\{\fontsize{6.5}{7.8}\selectfont\color{snMuted} 54 vs.\ 55 records caught by anchor}}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-%==============================================================
-% SLIDE 15: SECURITY COMPARISON & MEASURED SPEED BENCHMARKS
-%==============================================================
-\begin{frame}{Security Gains and Real Speed Overhead (3.6\,ms Total)}
+\begin{frame}{Security Comparison and Measured Runtime Overhead}
   \begin{columns}[c]
-    \begin{column}{0.45\textwidth}
-      \textbf{\footnotesize\color{snDark}Before vs.\ After Parent Vault}\\[4pt]
-      \fontsize{6.8}{8.2}\selectfont
-      \renewcommand{\arraystretch}{1.25}
-      \begin{tabular}{@{}p{1.95cm} p{1.35cm} p{2.35cm}@{}}
+    \begin{column}{0.46\textwidth}
+      {\scriptsize\bfseries\color{ink} ATTACK-BY-ATTACK COMPARISON}\\[6pt]
+      \scriptsize
+      \renewcommand{\arraystretch}{1.28}
+      \begin{tabular}{@{}p{2.05cm} p{1.25cm} >{\raggedright\arraybackslash}p{2.5cm}@{}}
         \toprule
         \textbf{Attack} & \textbf{Before} & \textbf{After (Vault)} \\
         \midrule
-        Uninstall ext. & 2 clicks & \textbf{\color{snGreen}Blocked} (Policy) \\
-        Click \textit{Clear} & Wiped & \textbf{\color{snGreen}Hidden \& blocked} \\
-        Read disk logs & Plaintext & \textbf{\color{snGreen}Encrypted} ($PK_p$) \\
-        IPC \texttt{DELETE} & N/A & \textbf{\color{snGreen}Rejected} \\
-        Edit / cut log & Silent & \textbf{\color{snGreen}Caught} (Chain+Anchor) \\
-        Edit 1B of PDF & Silent & \textbf{\color{snGreen}Caught} (PKCS\#7) \\
+        Uninstall ext. & 2 clicks & \textbf{Blocked} (Policy) \\
+        Click \textit{Clear} & Wiped & \textbf{Hidden \& blocked} \\
+        Read disk logs & Plaintext & \textbf{Denied + Encrypted} \\
+        IPC \texttt{DELETE} & N/A & \textbf{Rejected} \\
+        Edit / cut log & Silent & \textbf{Caught} (Chain+Anchor) \\
+        Edit 1B of PDF & Silent & \textbf{Caught} (PKCS\#7) \\
         \bottomrule
       \end{tabular}
 
-      \vspace{0.25cm}
-      \begin{accentcard}[snAccent]{Negligible Runtime Impact}
-        \fontsize{6.8}{8.2}\selectfont
-        Sealing (\textbf{0.70\,ms}) + Daemon save (\textbf{2.90\,ms}) = \textbf{3.60\,ms} total --- triggered only on flagged abuse, tiny next to \textbf{28\,ms} AI inference.
-      \end{accentcard}
+      \vspace{0.35cm}
+      {\color{accent}\hrule height 0.8pt}
+      \vspace{0.18cm}
+      {\scriptsize\color{ink}\textbf{Total capture overhead: 3.60\,ms}} {\scriptsize\color{slate}(0.70\,ms seal + 2.90\,ms daemon save) --- runs only when abuse is flagged, tiny compared to \textbf{28\,ms} AI inference.}
     \end{column}
-    \begin{column}{0.53\textwidth}
+    \begin{column}{0.51\textwidth}
       \centering
       \begin{tikzpicture}
       \begin{axis}[
         xbar,
-        width=0.72\textwidth,
-        height=5.2cm,
+        width=0.73\textwidth,
+        height=5.3cm,
         bar width=5.5pt,
         enlarge y limits=0.17,
-        xlabel={\fontsize{6.6}{7.6}\selectfont Latency (ms, log scale --- shorter is faster)},
+        xlabel={\fontsize{6.6}{7.6}\selectfont Measured latency (ms, log scale --- shorter is faster)},
         xmode=log,
         log origin=infty,
-        xmin=0.4, xmax=420,
+        xmin=0.4, xmax=650,
         xtick={0.5, 1, 3, 10, 30, 100},
         xticklabels={0.5, 1, 3, 10, 30, 100},
         tick label style={font=\tiny},
+        axis line style={ink!60},
         symbolic y coords={
           {Parent Export + PDF},
           {ONNX AI (baseline)},
@@ -765,14 +634,14 @@
         ytick=data,
         point meta=rawx,
         nodes near coords={\pgfmathprintnumber[fixed,precision=2]{\pgfplotspointmeta}\,ms},
-        nodes near coords style={font=\tiny, anchor=west},
+        nodes near coords style={font=\tiny, anchor=west, color=ink},
         legend columns=2,
         legend style={at={(0.5,1.03)}, anchor=south, font=\tiny,
-                      draw=black!25, fill=white, inner sep=2.5pt},
+                      draw=rulegray, fill=white, inner sep=2.5pt},
         grid=major,
-        major grid style={gray!20},
+        major grid style={rulegray!55},
       ]
-        \addplot[fill=snBlue!70, draw=snBlue] coordinates {
+        \addplot[fill=ink!80, draw=ink] coordinates {
           (0.70,{Browser Seal Box})
           (2.90,{Bridge + Daemon Save})
           (3.31,{Verify Signed PDF})
@@ -780,7 +649,7 @@
           (28.00,{ONNX AI (baseline)})
           (87.51,{Parent Export + PDF})
         };
-        \addplot[fill=snAccent!80, draw=snAccent] coordinates {
+        \addplot[fill=accent!80, draw=accent] coordinates {
           (1.15,{Browser Seal Box})
           (3.65,{Bridge + Daemon Save})
           (3.76,{Verify Signed PDF})
@@ -795,45 +664,70 @@
 \end{frame}
 
 %==============================================================
-% SLIDE 16: LIMITATIONS, FUTURE WORK & CONCLUSION
+% SLIDE 16: HONEST LIMITATIONS & FUTURE WORK
 %==============================================================
-\begin{frame}{Honest Limitations, Next Steps, and Key Takeaways}
+\begin{frame}{Honest Limitations and Future Work}
+  \vspace{0.15cm}
   \begin{columns}[T]
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snAmber!60]{Honest Limitations \& Future Work}
-        \scriptsize
-        \begin{enumerate}
-          \setlength\itemsep{3.5pt}
-          \item \textbf{Disk Wipe / Admin Password Theft:} Local vault cannot survive drive format. \textit{Next:} optional upload of encrypted blobs only.
-          \item \textbf{Consumer Windows/macOS Policy:} Chrome requires a Chrome Web Store listing (Unlisted works) for \texttt{ExtensionInstallForcelist}.
-          \item \textbf{Synthetic 5-Class Data:} Combine our 105k synthetic data with human-labelled real chats before deploying the 5-class model.
-          \item \textbf{Hardware \& Time Proofs:} Expand optional TPM 2.0 + external timestamping (RFC 3161).
-        \end{enumerate}
-      \end{softcard}
+    \begin{column}{0.47\textwidth}
+      {\fontsize{16}{18}\selectfont\bfseries\color{rulegray} 01}\quad{\small\bfseries\color{ink} Full Disk Wipe or Admin Theft}\\[4pt]
+      {\footnotesize\color{slate} A purely local vault cannot survive a hard-drive format or an attacker who knows the OS Admin password. \textit{Next:} optional zero-knowledge upload of already-encrypted blobs to write-once backup storage.}
+
+      \vspace{0.55cm}
+
+      {\fontsize{16}{18}\selectfont\bfseries\color{rulegray} 02}\quad{\small\bfseries\color{ink} Consumer macOS / Windows Policy}\\[4pt]
+      {\footnotesize\color{slate} As shown on Slide~9, Chrome on non-domain macOS/Windows restricts \texttt{ExtensionInstallForcelist} to Chrome Web Store IDs. Publishing an Unlisted store package solves this cleanly.}
     \end{column}
-    \begin{column}{0.485\textwidth}
-      \begin{softcard}[snGreen!60]{Key Takeaways}
-        \scriptsize
-        \begin{itemize}
-          \setlength\itemsep{4.5pt}
-          \item \textbf{100\% Offline Privacy:} Raw chats never leave the user's computer.
-          \item \textbf{Fast Detection:} 118\,MB INT8 multilingual + Hinglish model runs in \textbf{28\,ms} inside Chrome.
-          \item \textbf{4-Pillar Parent Vault:} Admin Chrome lock + browser sealed-box encryption + write-only hash-chained daemon + PKCS\#7 signed PDFs.
-          \item \textbf{Verified \& Lightweight:} Only \textbf{3.60\,ms} capture overhead; all unit, E2E, and 3 tamper-attack tests pass.
-        \end{itemize}
-      \end{softcard}
+    \begin{column}{0.47\textwidth}
+      {\fontsize{16}{18}\selectfont\bfseries\color{rulegray} 03}\quad{\small\bfseries\color{ink} Synthetic Five-Class Data}\\[4pt]
+      {\footnotesize\color{slate} Our 105{,}000-thread five-class dataset was generated by Qwen3-32B with rule checks. Zero-shot tests on real data (CAD, ConvAbuse, PRISM) gave 0.47--0.74 AUROC, so real human-labelled chats should be mixed in before deployment.}
+
+      \vspace{0.55cm}
+
+      {\fontsize{16}{18}\selectfont\bfseries\color{rulegray} 04}\quad{\small\bfseries\color{ink} Hardware \& External Time Proofs}\\[4pt]
+      {\footnotesize\color{slate} Our daemon already supports optional TPM~2.0 anchoring; future work adds RFC~3161 trusted timestamps and network-level TLS provenance.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+%==============================================================
+% SLIDE 17: CONCLUSION & QUESTIONS
+%==============================================================
+\begin{frame}[plain]
+  \begin{tikzpicture}[remember picture,overlay]
+    \fill[ink] (current page.north west) rectangle (current page.south east);
+    \fill[accent] (current page.north west) rectangle ([xshift=0.28cm]current page.south west);
+  \end{tikzpicture}
+
+  \vspace*{0.9cm}
+  {\fontsize{9}{11}\selectfont\bfseries\color{accent} CONCLUSION}\\[0.25cm]
+  {\fontsize{24}{28}\selectfont\bfseries\color{white} Practical, Privacy-First Safety\\for Families and Evidence}\\[0.55cm]
+
+  \begin{columns}[T]
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{white} 100\%}\\[2pt]
+      {\scriptsize\color{white!70} Offline privacy\\(zero cloud plaintext)}
+    \end{column}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{white} 28\,ms}\\[2pt]
+      {\scriptsize\color{white!70} On-device Hinglish\\abuse detection}
+    \end{column}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{white} 3.6\,ms}\\[2pt]
+      {\scriptsize\color{white!70} Tamper-evident vault\\capture overhead}
+    \end{column}
+    \begin{column}{0.24\textwidth}
+      {\Large\bfseries\color{white} 4 Pillars}\\[2pt]
+      {\scriptsize\color{white!70} Admin lock, sealing,\\chain, signed PDF}
     \end{column}
   \end{columns}
 
-  \vspace{0.25cm}
-  \begin{center}
-  \begin{tikzpicture}
-    \node[fill=snDark, text=white, rounded corners=5pt, minimum width=\textwidth, inner sep=7pt, align=center] {
-      {\normalsize\bfseries Thank You! Questions?}\\[2pt]
-      {\scriptsize\color{white!80} Code, Extension, Vault Binary \& Full Technical Report: \;\texttt{github.com/PrathamGarg1/surakshanet}}
-    };
-  \end{tikzpicture}
-  \end{center}
+  \vspace{0.75cm}
+  {\color{white!25}\hrule height 0.5pt}
+  \vspace{0.45cm}
+
+  {\Large\bfseries\color{white} Thank You --- Questions?}\\[0.15cm]
+  {\footnotesize\color{white!75} Source Code, Extension, Go Vault Binary \& Technical Report: \;\texttt{github.com/PrathamGarg1/surakshanet}}
 \end{frame}
 
 \end{document}
